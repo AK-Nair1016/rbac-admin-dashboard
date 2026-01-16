@@ -5,7 +5,7 @@ import { getUserByEmail } from "../utils/userQueries";
 
 export const login =async (req: Request, res: Response)=> {
     try {
-        // fetch user from database (select*from users where email=? in psuedo code)
+        // fetch user from database (select*from users where email=? in pseudo code)
         const {email,password}=req.body;
         if(!email || !password){
             return res.status(400).json({message: "Email and Password are Required"});
