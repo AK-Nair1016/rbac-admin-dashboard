@@ -8,14 +8,14 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
 });
 
-// // 🔍 TEMPORARY connection test (remove after confirmation)
-// pool
-//   .query("SELECT 1")
-//   .then(() => {
-//     console.log("✅ PostgreSQL connected successfully");
-//   })
-//   .catch((error) => {
-//     console.error("❌ PostgreSQL connection failed:", error);
-//   });
+// 🔍 TEMPORARY connection test (remove after confirmation)
+pool
+  .query("SELECT 1")
+  .then(() => {
+    console.log("✅ PostgreSQL connected successfully");
+  })
+  .catch((error) => {
+    console.error("❌ PostgreSQL connection failed:", error);
+  });
 
 export default pool;
