@@ -76,9 +76,85 @@ export const getMyEntities = async (req: Request, res: Response) => {
 };
 
 export const getEntityById = async (req: Request, res: Response) => {
-  // TODO
+  try {
+    const entityId= req.params.id;
+
+    if(!entityId){
+      return res.status(400).json({ message: "Entity ID is required" });
+    }
+    const query =`
+      SELECT id, name, status, owner_id, created_at
+      FROM entities
+      WHERE id = $1
+    `;
+
+    const result= await pool.query(query,[entityId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Entity not found" });
+    }
+
+    return res.status(200).json({
+      entity: result.rows[0],
+    });
+  } catch (error) {
+    console.error("GET ENTITY BY ID ERROR:", error);
+    return res.status(500).json({ message: "Failed to fetch entity" });
+  }
 };
 
 export const updateEntity = async (req: Request, res: Response) => {
-  // TODO
+  try {
+    const entityId = req.params.id;
+    const { name, status } = req.body;
+
+    if (!entityId) {
+      return res.status(400).json({ message: "Entity ID is required" });
+    }
+
+    if (!name && !status) {
+      return res.status(400).json({
+        message: "At least one field (name or status) must be provided",
+      });
+    }
+
+    // Build dynamic update safely
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (name) {
+      fields.push(`name = $${idx++}`);
+      values.push(name);
+    }
+
+    if (status) {
+      fields.push(`status = $${idx++}`);
+      values.push(status);
+    }
+
+    values.push(entityId);
+
+    const query = `
+      UPDATE entities
+      SET ${fields.join(", ")}
+      WHERE id = $${idx}
+      RETURNING id, name, status, owner_id, created_at
+    `;
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Entity not found" });
+    }
+
+    return res.status(200).json({
+      message: "Entity updated successfully",
+      entity: result.rows[0],
+    });
+  } catch (error) {
+    console.error("UPDATE ENTITY ERROR:", error);
+    return res.status(500).json({ message: "Failed to update entity" });
+  }
 };
+
