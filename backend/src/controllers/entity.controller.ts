@@ -34,18 +34,40 @@ export const createEntity = async (req: Request, res: Response) => {
 // GET all entities (Admin, Manager)
 export const getAllEntities = async (req: Request, res: Response) => {
   try {
-    const query = `
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const status = req.query.status as string | undefined;
+   
+    let query = `
       SELECT id, name, status, owner_id, created_at
       FROM entities
-      ORDER BY created_at DESC
     `;
+    const values: any[] = [];
+    let idx = 1;
 
-    const result = await pool.query(query);
+    if (status) {
+      query += ` WHERE status = $${idx++}`;
+      values.push(status);
+    }
+
+    query += `
+      ORDER BY created_at DESC
+      LIMIT $${idx++} OFFSET $${idx}
+    `;
+    values.push(limit, offset);
+
+    const result = await pool.query(query, values);
 
     return res.status(200).json({
+      page,
+      limit,
+      count: result.rows.length,
       entities: result.rows,
     });
-  } catch (error) {
+  }
+  catch (error) {
     console.error("GET ALL ENTITIES ERROR:", error);
     return res.status(500).json({ message: "Failed to fetch entities" });
   }
@@ -53,20 +75,31 @@ export const getAllEntities = async (req: Request, res: Response) => {
 
 // GET my entities (User)
 export const getMyEntities = async (req: Request, res: Response) => {
-  console.log("🟢 Entered getAllEntities controller");
   try {
     const user = (req as any).user;
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
 
     const query = `
       SELECT id, name, status, owner_id, created_at
       FROM entities
       WHERE owner_id = $1
       ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
     `;
 
-    const result = await pool.query(query, [user.userId]);
+    const result = await pool.query(query, [
+      user.userId,
+      limit,
+      offset,
+    ]);
 
     return res.status(200).json({
+      page,
+      limit,
+      count: result.rows.length,
       entities: result.rows,
     });
   } catch (error) {
@@ -75,6 +108,7 @@ export const getMyEntities = async (req: Request, res: Response) => {
   }
 };
 
+// GET EntityById
 export const getEntityById = async (req: Request, res: Response) => {
   try {
     const entityId= req.params.id;
