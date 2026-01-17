@@ -34,18 +34,40 @@ export const createEntity = async (req: Request, res: Response) => {
 // GET all entities (Admin, Manager)
 export const getAllEntities = async (req: Request, res: Response) => {
   try {
-    const query = `
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const status = req.query.status as string | undefined;
+   
+    let query = `
       SELECT id, name, status, owner_id, created_at
       FROM entities
-      ORDER BY created_at DESC
     `;
+    const values: any[] = [];
+    let idx = 1;
 
-    const result = await pool.query(query);
+    if (status) {
+      query += ` WHERE status = $${idx++}`;
+      values.push(status);
+    }
+
+    query += `
+      ORDER BY created_at DESC
+      LIMIT $${idx++} OFFSET $${idx}
+    `;
+    values.push(limit, offset);
+
+    const result = await pool.query(query, values);
 
     return res.status(200).json({
+      page,
+      limit,
+      count: result.rows.length,
       entities: result.rows,
     });
-  } catch (error) {
+  }
+  catch (error) {
     console.error("GET ALL ENTITIES ERROR:", error);
     return res.status(500).json({ message: "Failed to fetch entities" });
   }
@@ -53,20 +75,31 @@ export const getAllEntities = async (req: Request, res: Response) => {
 
 // GET my entities (User)
 export const getMyEntities = async (req: Request, res: Response) => {
-  console.log("🟢 Entered getAllEntities controller");
   try {
     const user = (req as any).user;
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
 
     const query = `
       SELECT id, name, status, owner_id, created_at
       FROM entities
       WHERE owner_id = $1
       ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
     `;
 
-    const result = await pool.query(query, [user.userId]);
+    const result = await pool.query(query, [
+      user.userId,
+      limit,
+      offset,
+    ]);
 
     return res.status(200).json({
+      page,
+      limit,
+      count: result.rows.length,
       entities: result.rows,
     });
   } catch (error) {
@@ -75,10 +108,87 @@ export const getMyEntities = async (req: Request, res: Response) => {
   }
 };
 
+// GET EntityById
 export const getEntityById = async (req: Request, res: Response) => {
-  // TODO
+  try {
+    const entityId= req.params.id;
+
+    if(!entityId){
+      return res.status(400).json({ message: "Entity ID is required" });
+    }
+    const query =`
+      SELECT id, name, status, owner_id, created_at
+      FROM entities
+      WHERE id = $1
+    `;
+
+    const result= await pool.query(query,[entityId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Entity not found" });
+    }
+
+    return res.status(200).json({
+      entity: result.rows[0],
+    });
+  } catch (error) {
+    console.error("GET ENTITY BY ID ERROR:", error);
+    return res.status(500).json({ message: "Failed to fetch entity" });
+  }
 };
 
 export const updateEntity = async (req: Request, res: Response) => {
-  // TODO
+  try {
+    const entityId = req.params.id;
+    const { name, status } = req.body;
+
+    if (!entityId) {
+      return res.status(400).json({ message: "Entity ID is required" });
+    }
+
+    if (!name && !status) {
+      return res.status(400).json({
+        message: "At least one field (name or status) must be provided",
+      });
+    }
+
+    // Build dynamic update safely
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (name) {
+      fields.push(`name = $${idx++}`);
+      values.push(name);
+    }
+
+    if (status) {
+      fields.push(`status = $${idx++}`);
+      values.push(status);
+    }
+
+    values.push(entityId);
+
+    const query = `
+      UPDATE entities
+      SET ${fields.join(", ")}
+      WHERE id = $${idx}
+      RETURNING id, name, status, owner_id, created_at
+    `;
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Entity not found" });
+    }
+
+    return res.status(200).json({
+      message: "Entity updated successfully",
+      entity: result.rows[0],
+    });
+  } catch (error) {
+    console.error("UPDATE ENTITY ERROR:", error);
+    return res.status(500).json({ message: "Failed to update entity" });
+  }
 };
+
