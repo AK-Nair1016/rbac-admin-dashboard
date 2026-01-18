@@ -39,7 +39,7 @@ export const getAllEntities = async (req: Request, res: Response) => {
     const offset = (page - 1) * limit;
 
     const status = req.query.status as string | undefined;
-   
+
     let query = `
       SELECT id, name, status, owner_id, created_at
       FROM entities
@@ -63,15 +63,15 @@ export const getAllEntities = async (req: Request, res: Response) => {
     return res.status(200).json({
       page,
       limit,
-      count: result.rows.length,
-      entities: result.rows,
+      total: result.rows.length, // ✅ rename
+      data: result.rows,         // ✅ rename
     });
-  }
-  catch (error) {
+  } catch (error) {
     console.error("GET ALL ENTITIES ERROR:", error);
     return res.status(500).json({ message: "Failed to fetch entities" });
   }
 };
+
 
 // GET my entities (User)
 export const getMyEntities = async (req: Request, res: Response) => {
