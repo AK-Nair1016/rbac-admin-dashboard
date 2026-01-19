@@ -28,7 +28,7 @@ export interface EntityQueryParams {
 }
 
 /* =========================
-   LIST APIs (ONLY WHAT WE USE NOW)
+          LIST APIs
    ========================= */
 
 export const getAllEntities = async (
@@ -42,5 +42,21 @@ export const getMyEntities = async (
   params: EntityQueryParams = {}
 ): Promise<PaginatedResponse<Entity>> => {
   const response = await axios.get("/entities/my", { params });
+  return response.data;
+};
+
+/* =========================
+   CREATE API
+   ========================= */
+
+export interface CreateEntityPayload {
+  name: string;
+  status?: string;
+}
+
+export const createEntity = async (
+  payload: CreateEntityPayload
+) => {
+  const response = await axios.post("/entities", payload);
   return response.data;
 };

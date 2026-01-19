@@ -1,11 +1,16 @@
-import { createContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 /* ===== Types ===== */
 
 export type UserRole = "admin" | "manager" | "user";
 
 export interface AuthUser {
-  userId: string;
+  employeeId: string; // human-readable ID
   role: UserRole;
 }
 
@@ -25,18 +30,23 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 const decodeToken = (token: string): AuthUser => {
   const payload = JSON.parse(atob(token.split(".")[1]));
+
   return {
-    userId: payload.userId,
+    employeeId: payload.employeeId,
     role: payload.role,
   };
 };
 
 /* ===== Provider ===== */
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // 🔑 NEW
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -47,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(decodedUser);
     }
 
-    setIsLoading(false); // 🔑 auth restore complete
+    setIsLoading(false);
   }, []);
 
   const login = (jwtToken: string) => {
@@ -70,17 +80,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-  
 };
-import { useContext } from "react";
+
+/* ===== Hook (THIS FIXES YOUR ERROR) ===== */
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+    throw new Error(
+      "useAuth must be used within an AuthProvider"
+    );
   }
 
   return context;
 };
-

@@ -8,12 +8,12 @@ const Dashboard = () => {
     return null;
   }
 
-  const { role, userId } = authContext.user;
+  const { role, employeeId } = authContext.user;
 
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Dashboard</h1>
-      <p>User ID: {userId}</p>
+      <p>User ID: {employeeId}</p>
       <p>Role: {role}</p>
 
       {role === "admin" && (

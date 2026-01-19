@@ -2,7 +2,7 @@ import pool from "../config/db";
 
 export const getUserByEmail = async (email: string) => {
   const query = `
-    SELECT id, email, password, role
+    SELECT id,email,password,role,employee_id
     FROM users
     WHERE email = $1
   `;
