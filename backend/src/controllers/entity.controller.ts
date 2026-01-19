@@ -3,14 +3,16 @@ import pool from "../config/db";
 
 // CREATE entity (Admin, Manager)
 export const createEntity = async (req: Request, res: Response) => {
-  console.log("🟢 Entered createEntity controller");
-  try {
-    const { name, status, ownerId } = req.body;
+  console.log("🟢 [CREATE ENTITY] Entered");
 
-    if (!name || !ownerId) {
-      return res
-        .status(400)
-        .json({ message: "Name and ownerId are required" });
+  try {
+    const { name, status } = req.body;
+    const ownerId = req.user!.userId;
+
+    if (!name) {
+      return res.status(400).json({
+        message: "Name is required",
+      });
     }
 
     const query = `
@@ -19,15 +21,24 @@ export const createEntity = async (req: Request, res: Response) => {
       RETURNING *
     `;
 
-    const result = await pool.query(query, [name, status, ownerId]);
+    const result = await pool.query(query, [
+      name,
+      status ?? "ACTIVE",
+      ownerId,
+    ]);
 
     return res.status(201).json({
       message: "Entity created successfully",
-      entity: result.rows[0],
+      data: result.rows[0],
     });
   } catch (error) {
-    console.error("CREATE ENTITY ERROR:", error);
-    return res.status(500).json({ message: "Failed to create entity" });
+    console.error("❌ [CREATE ENTITY] Error:", error);
+
+    return res.status(500).json({
+      message: "Failed to create entity",
+    });
+  } finally {
+    console.log("🔵 [CREATE ENTITY] Exited");
   }
 };
 
