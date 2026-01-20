@@ -10,6 +10,7 @@ import {
 export type UserRole = "admin" | "manager" | "user";
 
 export interface AuthUser {
+  userId: string // backend readable ID
   employeeId: string; // human-readable ID
   role: UserRole;
 }
@@ -32,6 +33,7 @@ const decodeToken = (token: string): AuthUser => {
   const payload = JSON.parse(atob(token.split(".")[1]));
 
   return {
+    userId: payload.userId,
     employeeId: payload.employeeId,
     role: payload.role,
   };

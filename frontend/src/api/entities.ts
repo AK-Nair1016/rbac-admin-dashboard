@@ -8,6 +8,7 @@ import axios from "./axios";
 export interface Entity {
   id: string;
   name: string;
+  status: string;
   description?: string;
   ownerId: string;
   createdAt: string;
@@ -58,5 +59,33 @@ export const createEntity = async (
   payload: CreateEntityPayload
 ) => {
   const response = await axios.post("/entities", payload);
+  return response.data;
+};
+
+/* =========================
+   READ SINGLE ENTITY
+   ========================= */
+
+export const getEntityById = async (
+  id: string
+): Promise<Entity> => {
+  const response = await axios.get(`/entities/${id}`);
+  return response.data;
+};
+
+/* =========================
+   UPDATE ENTITY
+   ========================= */
+
+export interface UpdateEntityPayload {
+  name: string;
+  status?: string;
+}
+
+export const updateEntity = async (
+  id: string,
+  payload: UpdateEntityPayload
+): Promise<Entity> => {
+  const response = await axios.put(`/entities/${id}`, payload);
   return response.data;
 };

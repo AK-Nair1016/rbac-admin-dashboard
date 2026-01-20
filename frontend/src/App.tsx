@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import EntitiesList from "./pages/entities/EntitiesList";
 import CreateEntity from "./pages/entities/CreateEntity";
+import EditEntity from "./pages/entities/EditEntity";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
@@ -38,9 +39,17 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-
+          <Route
+            path="/entities/:id/edit"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "manager", "user"]}>
+                <EditEntity />
+              </ProtectedRoute>
+            }
+          />
+          
           {/* fallback */}
+
           <Route path="*" element={<Login />} />
         </Routes>
       </BrowserRouter>
