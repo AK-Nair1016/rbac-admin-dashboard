@@ -11,7 +11,7 @@ const EntitiesList = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user)return;
 
     const fetchEntities = async () => {
       try {
@@ -35,21 +35,32 @@ const EntitiesList = () => {
 
   if (loading) return <p>Loading entities...</p>;
   if (error) return <p>{error}</p>;
-  if (!entities || entities.length === 0) {
-  return <p>No entities found</p>;
-}
+  if (entities.length === 0) return <p>No entities found</p>;
+  
+  if (!user)return null;
 
 
   return (
     <div>
       <h1>Entities</h1>
+
       <ul>
-        {entities.map((entity) => (
-          <li key={entity.id}>
-            <strong>{entity.name}</strong>
-            <p>{entity.description}</p>
-          </li>
-        ))}
+        {entities.map((entity) => {
+          const canEdit =
+            user.role === "admin" ||
+            user.role === "manager" ||
+            (user.role === "user" &&
+              entity.ownerId === user.employeeId);
+
+          return (
+            <li key={entity.id}>
+              <strong>{entity.name}</strong>
+              <p>{entity.description}</p>
+
+              {canEdit && <button>Edit</button>}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
