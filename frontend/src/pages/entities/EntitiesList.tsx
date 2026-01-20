@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getAllEntities, getMyEntities } from "../../api/entities";
 import type { Entity } from "../../api/entities";
+import styles from "./EntitiesList.module.css";
 
 const EntitiesList = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user)return;
+  if (!user) return null;
 
+  useEffect(() => {
     const fetchEntities = async () => {
       try {
         setLoading(true);
@@ -33,35 +36,59 @@ const EntitiesList = () => {
     fetchEntities();
   }, [user]);
 
-  if (loading) return <p>Loading entities...</p>;
-  if (error) return <p>{error}</p>;
-  if (entities.length === 0) return <p>No entities found</p>;
-  
-  if (!user)return null;
-
+  if (loading) return <p className={styles.info}>Loading entities…</p>;
+  if (error) return <p className={styles.error}>{error}</p>;
+  if (entities.length === 0)
+    return <p className={styles.info}>No entities found</p>;
 
   return (
-    <div>
-      <h1>Entities</h1>
+    <div className={styles.container}>
+      <h1 className={styles.title}>Entities</h1>
 
-      <ul>
+      <div className={styles.table}>
+        <div className={styles.header}>
+          <span>Name</span>
+          <span>Status</span>
+          <span>Actions</span>
+        </div>
+
         {entities.map((entity) => {
           const canEdit =
             user.role === "admin" ||
             user.role === "manager" ||
             (user.role === "user" &&
-              entity.ownerId === user.employeeId);
+              entity.ownerId === user.userId);
 
           return (
-            <li key={entity.id}>
-              <strong>{entity.name}</strong>
-              <p>{entity.description}</p>
+            <div key={entity.id} className={styles.row}>
+              <span>{entity.name}</span>
 
-              {canEdit && <button>Edit</button>}
-            </li>
+              <span
+                className={`${styles.status} ${
+                  entity.status === "ACTIVE"
+                    ? styles.active
+                    : styles.inactive
+                }`}
+              >
+                {entity.status}
+              </span>
+
+              <span>
+                {canEdit && (
+                  <button
+                    className={styles.editBtn}
+                    onClick={() =>
+                      navigate(`/entities/${entity.id}/edit`)
+                    }
+                  >
+                    Edit
+                  </button>
+                )}
+              </span>
+            </div>
           );
         })}
-      </ul>
+      </div>
     </div>
   );
 };
