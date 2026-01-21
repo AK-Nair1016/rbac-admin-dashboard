@@ -1,4 +1,4 @@
-import { useState, useContext } from "react"
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
 import api from "../api/axios";
@@ -6,37 +6,30 @@ import { AuthContext } from "../auth/AuthContext";
 
 const Login = () => {
   const authContext = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const navigate = useNavigate();
-
-  // Submit handling
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", {
-        email,
-        password,
-      });
-
-      const { token } = response.data;
-
       if (!authContext) {
-        throw new Error("Auth context not available");
+        throw new Error("Auth context missing");
       }
 
-      authContext.login(token);
-      navigate('/dashboard');
+      const res = await api.post("/auth/login", { email, password });
+      authContext.login(res.data.token);
+      navigate("/dashboard", { replace: true });
     } catch (err: any) {
       setError(
-        err.response?.data?.message || "Login failed. Please try again."
+        err?.response?.data?.message ||
+          "Invalid credentials. Please try again."
       );
     } finally {
       setLoading(false);
@@ -44,32 +37,48 @@ const Login = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h2 className={styles.title}>Login</h2>
-
-        {error && <p className={styles.error}>{error}</p>}
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
+    <div className={styles.page}>
+      {/* LEFT: ILLUSTRATION */}
+      <div className={styles.left}>
+        <img src="src/assets/loginImg.png" alt="Secure dashboard access"className={styles.image}
         />
+      </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+      {/* RIGHT: LOGIN */}
+      <div className={styles.right}>
+        <div className={styles.card}>
+          <h1 className={styles.heading}>Login to Dashboard</h1>
+          <p className={styles.subheading}>
+            Secure access for administrators and managers
+          </p>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+          {error && <div className={styles.errorBox}>{error}</div>}
+
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Authenticating…" : "Login"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };
