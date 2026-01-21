@@ -53,3 +53,15 @@ export const getActiveEntitiesCountByOwner = async (
   const result = await pool.query(query, [ownerId]);
   return Number(result.rows[0].count);
 };
+export const getEntityStatusBreakdown = async (): Promise<
+  { status: string; count: number }[]
+> => {
+  const query = `
+    SELECT status, COUNT(*)::int AS count
+    FROM entities
+    GROUP BY status
+  `;
+
+  const result = await pool.query(query);
+  return result.rows;
+};
