@@ -4,6 +4,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes";
 import protectedRoutes from "./routes/protected.routes";
 import entityRoutes from "./routes/entity.routes";
+import metricsRoutes from "./routes/metrics.routes"
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use(cors());
 app.use("/auth", authRoutes);
 app.use("/protected", protectedRoutes);
 app.use("/entities", entityRoutes);
+app.use("/metrics",metricsRoutes)
 
 app.get("/health", (_req, res) => {
   res.json({ status: "OK" });
