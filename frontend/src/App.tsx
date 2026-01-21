@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import EntitiesList from "./pages/entities/EntitiesList";
 import CreateEntity from "./pages/entities/CreateEntity";
 import EditEntity from "./pages/entities/EditEntity";
+import DashboardLayout from "./Layouts/DashboardLayout"; // ✅ casing fixed
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
@@ -12,44 +13,33 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public route */}
           <Route path="/login" element={<Login />} />
 
+          {/* Protected admin layout */}
           <Route
-            path="/dashboard"
             element={
               <ProtectedRoute allowedRoles={["admin", "manager", "user"]}>
-                <Dashboard />
+                <DashboardLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
 
-          <Route
-            path="/entities"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "manager", "user"]}>
-                <EntitiesList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/entities/new"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "manager"]}>
-                <CreateEntity />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/entities/:id/edit"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "manager", "user"]}>
-                <EditEntity />
-              </ProtectedRoute>
-            }
-          />
-          
-          {/* fallback */}
+            <Route path="/entities" element={<EntitiesList />} />
 
+            <Route
+              path="/entities/new"
+              element={<CreateEntity />}
+            />
+
+            <Route
+              path="/entities/:id/edit"
+              element={<EditEntity />}
+            />
+          </Route>
+
+          {/* Fallback */}
           <Route path="*" element={<Login />} />
         </Routes>
       </BrowserRouter>

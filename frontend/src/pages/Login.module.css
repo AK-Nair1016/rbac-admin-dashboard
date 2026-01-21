@@ -48,7 +48,7 @@
    ========================= */
 
 .card {
-  background-color: #7f568f;
+  background-color:rgb(69, 101, 146);
   padding: 2.75rem 2.6rem;
   border-radius: 14px;
   width: 100%;
@@ -71,7 +71,7 @@
 
 .subheading {
   font-size: 0.95rem;
-  color: #6b7280;
+  color: #060d1a;
   margin-bottom: 1.8rem;
   max-width: 420px;
 }
@@ -134,7 +134,8 @@ input:focus {
    ========================= */
 
 button {
-  padding: 0.9rem;
+  padding: 0.9;
+  /* width:20%; */
   background-color: #22c55e;
   color: #ffffff;
   font-weight: 600;
