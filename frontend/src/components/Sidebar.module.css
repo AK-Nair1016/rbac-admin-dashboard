@@ -1,0 +1,106 @@
+.sidebar {
+  width: 240px;
+  background-color: #0d1c3f;
+  color: #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+}
+/* SIDEBAR HEADER */
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding: 0 8px;
+}
+
+/* BRAND */
+
+.brand {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+
+/* NAVIGATION */
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #cbd5e1;
+  font-size: 14px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navItem:hover {
+  background-color: #1e293b;
+}
+
+.active {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+/* LOGOUT */
+
+.logout {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.logout:hover {
+  background-color: #1e293b;
+}
+/* COLLAPSED STATE */
+
+.collapsed {
+  width: 72px;
+  /* padding: 24px 8px; */
+}
+
+.collapsed .navItem {
+  justify-content: center;
+}
+
+.collapsed .logout {
+  justify-content: center;
+}
+
+
+/* COLLAPSE BUTTON */
+
+.collapseBtn {
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: none;
+}
+
+.collapseBtn:hover {
+  background-color: #1e293b;
+}
