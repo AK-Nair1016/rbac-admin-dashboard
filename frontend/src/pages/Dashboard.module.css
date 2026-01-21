@@ -1,0 +1,122 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* =========================
+   HEADER
+   ========================= */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 22px 28px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: bolder;
+  color: #0c162c;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #111827;
+}
+
+/* =========================
+   RIGHT HEADER (IDENTITY)
+   ========================= */
+
+.headerRight {
+  display: flex;
+  gap: 32px;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.label {
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.value {
+  font-size: 2rem;          /* ⬅ increased size */
+  font-weight: bolder;         /* ⬅ stronger emphasis */
+  color: #111827;
+  margin-top: 2px;
+}
+
+/* =========================
+   METRICS
+   ========================= */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+/* =========================
+   METRICS SECTION WRAPPER
+   ========================= */
+
+.metricsSection {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+
+/* =========================
+   PANEL
+   ========================= */
+
+.panel {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.panel p {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #374151;
+}
