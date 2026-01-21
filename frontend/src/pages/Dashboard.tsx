@@ -1,14 +1,45 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
+import { getMetrics } from "../api/metrics";
 import MetricCard from "../components/MetricCard";
 import styles from "./Dashboard.module.css";
 
 const Dashboard = () => {
   const authContext = useContext(AuthContext);
+  const user = authContext?.user;
 
-  if (!authContext || !authContext.user) return null;
+  const [metrics, setMetrics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const { role, employeeId } = authContext.user;
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const data = await getMetrics();
+        setMetrics(data.metrics);
+      } catch {
+        setError("Failed to load dashboard metrics");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
+
+  if (!user) {
+    return null;
+  }
+
+  if (loading) {
+    return <div>Loading dashboard...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  const { role, employeeId } = user;
 
   return (
     <div className={styles.dashboard}>
@@ -38,64 +69,37 @@ const Dashboard = () => {
         <h2 className={styles.sectionTitle}>Overview</h2>
 
         <div className={styles.metrics}>
-          {role === "admin" && (
+          {role === "admin" && metrics && (
             <>
-              <MetricCard label="Total Users" value={24} />
-              <MetricCard label="Total Entities" value={112} />
+              <MetricCard label="Total Users" value={metrics.totalUsers} />
+              <MetricCard label="Total Entities" value={metrics.totalEntities} />
+              <MetricCard label="System Roles" value={metrics.systemRoles} />
+            </>
+          )}
+
+          {role === "manager" && metrics && (
+            <>
               <MetricCard
-                label="System Roles"
-                value={3}
-                hint="Admin · Manager · User"
+                label="Assigned Entities"
+                value={metrics.assignedEntities}
+              />
+              <MetricCard
+                label="Active Entities"
+                value={metrics.activeEntities}
               />
             </>
           )}
 
-          {role === "manager" && (
+          {role === "user" && metrics && (
             <>
-              <MetricCard label="Assigned Entities" value={18} />
-              <MetricCard label="Pending Updates" value={3} />
-            </>
-          )}
-
-          {role === "user" && (
-            <>
-              <MetricCard label="My Entities" value={5} />
-              <MetricCard label="Last Activity" value="2 days ago" />
+              <MetricCard label="My Entities" value={metrics.myEntities} />
+              <MetricCard
+                label="Active Entities"
+                value={metrics.activeEntities}
+              />
             </>
           )}
         </div>
-      </section>
-
-      {/* Role panel */}
-      <section className={styles.panel}>
-        {role === "admin" && (
-          <>
-            <h2>Admin Overview</h2>
-            <p>
-              You have full system access. Manage users, review all entities,
-              and configure system-wide settings.
-            </p>
-          </>
-        )}
-
-        {role === "manager" && (
-          <>
-            <h2>Manager Overview</h2>
-            <p>
-              You can create and manage entities assigned to your scope and
-              review operational data.
-            </p>
-          </>
-        )}
-
-        {role === "user" && (
-          <>
-            <h2>User Overview</h2>
-            <p>
-              You can view and manage entities that you own or are assigned to.
-            </p>
-          </>
-        )}
       </section>
     </div>
   );
