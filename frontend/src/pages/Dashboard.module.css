@@ -120,3 +120,39 @@
   font-size: 14px;
   color: #374151;
 }
+/* =========================
+   Charts
+   ========================= */
+
+.chartsSection {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-top: 24px;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
+  gap: 24px;
+}
+
+.chartCard {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.chartTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.chartContent {
+  max-width: 260px;
+  margin: 0 auto;
+}

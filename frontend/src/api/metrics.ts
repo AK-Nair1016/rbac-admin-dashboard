@@ -1,7 +1,7 @@
 import axios from "./axios";
 
 /* =========================
-   TYPES
+   METRICS TYPES
    ========================= */
 
 export interface AdminMetrics {
@@ -20,10 +20,37 @@ export interface UserMetrics {
   activeEntities: number;
 }
 
+/* =========================
+   CHART TYPES (ADMIN ONLY)
+   ========================= */
+
+export interface EntityStatusChartItem {
+  status: string;
+  count: number;
+}
+
+export interface AdminCharts {
+  entitiesByStatus: EntityStatusChartItem[];
+}
+
+/* =========================
+   API RESPONSE TYPE
+   ========================= */
+
 export type MetricsResponse =
-  | { role: "admin"; metrics: AdminMetrics }
-  | { role: "manager"; metrics: ManagerMetrics }
-  | { role: "user"; metrics: UserMetrics };
+  | {
+      role: "admin";
+      metrics: AdminMetrics;
+      charts: AdminCharts;
+    }
+  | {
+      role: "manager";
+      metrics: ManagerMetrics;
+    }
+  | {
+      role: "user";
+      metrics: UserMetrics;
+    };
 
 /* =========================
    METRICS API
