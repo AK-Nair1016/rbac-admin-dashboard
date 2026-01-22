@@ -32,7 +32,6 @@ const Dashboard = () => {
 
         setMetrics(data.metrics);
 
-        // Type-safe narrowing: charts exist ONLY for admin
         if (data.role === "admin") {
           setChartRawData(data.charts.entitiesByStatus);
         }
@@ -52,23 +51,29 @@ const Dashboard = () => {
 
   const { role, employeeId } = user;
 
-  // Transform backend data → Chart.js format
+  const normalizeStatus = (status: string) =>
+    status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
   const entityStatusChart =
-    chartRawData && {
-      labels: chartRawData.map((item) => item.status),
-      datasets: [
-        {
-          data: chartRawData.map((item) => item.count),
-          backgroundColor: [
-            "#2563eb",
-            "#16a34a",
-            "#f59e0b",
-            "#dc2626",
+    chartRawData && chartRawData.length > 0
+      ? {
+          labels: chartRawData.map((item) =>
+            normalizeStatus(item.status)
+          ),
+          datasets: [
+            {
+              data: chartRawData.map((item) => item.count),
+              backgroundColor: [
+                "#2563eb",
+                "#16a34a",
+                "#f59e0b",
+                "#dc2626",
+              ],
+              borderWidth: 1,
+            },
           ],
-          borderWidth: 1,
-        },
-      ],
-    };
+        }
+      : null;
 
   return (
     <div className={styles.dashboard}>
@@ -93,7 +98,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Metrics Overview */}
+      {/* Metrics */}
       <section className={styles.metricsSection}>
         <h2 className={styles.sectionTitle}>Overview</h2>
 
@@ -131,17 +136,39 @@ const Dashboard = () => {
         </div>
       </section>
 
-      {/* Analytics / Charts (Admin only) */}
-      {role === "admin" && entityStatusChart && (
+      {/* Analytics (Admin only) */}
+      {role === "admin" && chartRawData && (
         <section className={styles.chartsSection}>
           <h2 className={styles.sectionTitle}>Analytics</h2>
 
-          <div className={styles.chartsGrid}>
-            <div className={styles.chartCard}>
-              <h3 className={styles.chartTitle}>Entities by Status</h3>
-              <Doughnut data={entityStatusChart} />
+          {entityStatusChart ? (
+            <div className={styles.chartsGrid}>
+              <div className={styles.chartCard}>
+                <h3 className={styles.chartTitle}>Entities by Status</h3>
+                <Doughnut
+                  data={entityStatusChart}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                      legend: {
+                        position: "bottom",
+                        labels: {
+                          boxWidth: 12,
+                          padding: 16,
+                          font: { size: 12 },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className={styles.emptyState}>
+              No entity data available to display analytics.
+            </p>
+          )}
         </section>
       )}
     </div>
