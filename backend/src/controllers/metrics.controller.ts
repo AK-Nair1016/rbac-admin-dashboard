@@ -4,6 +4,7 @@ import {
   getTotalEntitiesCount,
   getEntitiesCountByOwner,
   getActiveEntitiesCountByOwner,
+  getEntityStatusBreakdown, 
 } from "../utils/userQueries";
 
 export const getMetrics = async (req: Request, res: Response) => {
@@ -11,18 +12,23 @@ export const getMetrics = async (req: Request, res: Response) => {
     const { role, userId } = req.user!;
 
     if (role === "admin") {
-      const totalUsers = await getTotalUsersCount();
-      const totalEntities = await getTotalEntitiesCount();
+  const totalUsers = await getTotalUsersCount();
+  const totalEntities = await getTotalEntitiesCount();
+  const statusBreakdown = await getEntityStatusBreakdown();
 
-      return res.json({
-        role,
-        metrics: {
-          totalUsers,
-          totalEntities,
-          systemRoles: 3,
-        },
-      });
-    }
+  return res.json({
+    role,
+    metrics: {
+      totalUsers,
+      totalEntities,
+      systemRoles: 3,
+    },
+    charts: {
+      entitiesByStatus: statusBreakdown,
+    },
+  });
+}
+
 
     if (role === "manager") {
       const assignedEntities = await getEntitiesCountByOwner(userId);

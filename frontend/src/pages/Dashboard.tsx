@@ -1,14 +1,79 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext";
+import { getMetrics } from "../api/metrics";
 import MetricCard from "../components/MetricCard";
 import styles from "./Dashboard.module.css";
 
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Doughnut } from "react-chartjs-2";
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
 const Dashboard = () => {
   const authContext = useContext(AuthContext);
+  const user = authContext?.user;
 
-  if (!authContext || !authContext.user) return null;
+  const [metrics, setMetrics] = useState<any>(null);
+  const [chartRawData, setChartRawData] = useState<
+    { status: string; count: number }[] | null
+  >(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const { role, employeeId } = authContext.user;
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const data = await getMetrics();
+
+        setMetrics(data.metrics);
+
+        if (data.role === "admin") {
+          setChartRawData(data.charts.entitiesByStatus);
+        }
+      } catch {
+        setError("Failed to load dashboard metrics");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
+
+  if (!user) return null;
+  if (loading) return <div>Loading dashboard...</div>;
+  if (error) return <div>{error}</div>;
+
+  const { role, employeeId } = user;
+
+  const normalizeStatus = (status: string) =>
+    status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
+  const entityStatusChart =
+    chartRawData && chartRawData.length > 0
+      ? {
+          labels: chartRawData.map((item) =>
+            normalizeStatus(item.status)
+          ),
+          datasets: [
+            {
+              data: chartRawData.map((item) => item.count),
+              backgroundColor: [
+                "#2563eb",
+                "#16a34a",
+                "#f59e0b",
+                "#dc2626",
+              ],
+              borderWidth: 1,
+            },
+          ],
+        }
+      : null;
 
   return (
     <div className={styles.dashboard}>
@@ -33,70 +98,79 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Metrics Overview */}
+      {/* Metrics */}
       <section className={styles.metricsSection}>
         <h2 className={styles.sectionTitle}>Overview</h2>
 
         <div className={styles.metrics}>
-          {role === "admin" && (
+          {role === "admin" && metrics && (
             <>
-              <MetricCard label="Total Users" value={24} />
-              <MetricCard label="Total Entities" value={112} />
+              <MetricCard label="Total Users" value={metrics.totalUsers} />
+              <MetricCard label="Total Entities" value={metrics.totalEntities} />
+              <MetricCard label="System Roles" value={metrics.systemRoles} />
+            </>
+          )}
+
+          {role === "manager" && metrics && (
+            <>
               <MetricCard
-                label="System Roles"
-                value={3}
-                hint="Admin · Manager · User"
+                label="Assigned Entities"
+                value={metrics.assignedEntities}
+              />
+              <MetricCard
+                label="Active Entities"
+                value={metrics.activeEntities}
               />
             </>
           )}
 
-          {role === "manager" && (
+          {role === "user" && metrics && (
             <>
-              <MetricCard label="Assigned Entities" value={18} />
-              <MetricCard label="Pending Updates" value={3} />
-            </>
-          )}
-
-          {role === "user" && (
-            <>
-              <MetricCard label="My Entities" value={5} />
-              <MetricCard label="Last Activity" value="2 days ago" />
+              <MetricCard label="My Entities" value={metrics.myEntities} />
+              <MetricCard
+                label="Active Entities"
+                value={metrics.activeEntities}
+              />
             </>
           )}
         </div>
       </section>
 
-      {/* Role panel */}
-      <section className={styles.panel}>
-        {role === "admin" && (
-          <>
-            <h2>Admin Overview</h2>
-            <p>
-              You have full system access. Manage users, review all entities,
-              and configure system-wide settings.
-            </p>
-          </>
-        )}
+      {/* Analytics (Admin only) */}
+      {role === "admin" && chartRawData && (
+        <section className={styles.chartsSection}>
+          <h2 className={styles.sectionTitle}>Analytics</h2>
 
-        {role === "manager" && (
-          <>
-            <h2>Manager Overview</h2>
-            <p>
-              You can create and manage entities assigned to your scope and
-              review operational data.
+          {entityStatusChart ? (
+            <div className={styles.chartsGrid}>
+              <div className={styles.chartCard}>
+                <h3 className={styles.chartTitle}>Entities by Status</h3>
+                <Doughnut
+                  data={entityStatusChart}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                      legend: {
+                        position: "bottom",
+                        labels: {
+                          boxWidth: 12,
+                          padding: 16,
+                          font: { size: 12 },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className={styles.emptyState}>
+              No entity data available to display analytics.
             </p>
-          </>
-        )}
-
-        {role === "user" && (
-          <>
-            <h2>User Overview</h2>
-            <p>
-              You can view and manage entities that you own or are assigned to.
-            </p>
-          </>
-        )}
-      </section>
+          )}
+        </section>
+      )}
     </div>
   );
 };
