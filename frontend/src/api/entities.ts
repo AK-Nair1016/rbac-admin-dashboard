@@ -89,3 +89,48 @@ export const updateEntity = async (
   const response = await axios.put(`/entities/${id}`, payload);
   return response.data;
 };
+/* =========================
+   UPDATE ENTITY STATUS (INLINE TOGGLE)
+   ========================= */
+
+export const updateEntityStatus = async (
+  id: string,
+  status: "ACTIVE" | "INACTIVE"
+): Promise<Entity> => {
+  const response = await axios.patch(`/entities/${id}/status`, {
+    status,
+  });
+  return response.data;
+};
+/* =========================
+   USER ASSIGNMENT (STEP 2)
+   ========================= */
+
+export interface AssignableUser {
+  id: string;
+  email: string;
+  employee_id: string;
+}
+
+/**
+ * Get users that can be assigned to entities
+ * Admin / Manager only
+ */
+export const getAssignableUsers = async (): Promise<AssignableUser[]> => {
+  const response = await axios.get("/users/assignable");
+  return response.data.data;
+};
+
+/**
+ * Assign a user to an entity
+ * Admin / Manager only
+ */
+export const assignUserToEntity = async (
+  entityId: string,
+  userId: string
+) => {
+  const response = await axios.post(`/entities/${entityId}/assign`, {
+    userId,
+  });
+  return response.data;
+};

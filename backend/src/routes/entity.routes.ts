@@ -4,7 +4,9 @@ import {
   getAllEntities,
   getMyEntities,
   getEntityById,
-  updateEntity
+  updateEntity,
+  updateEntityStatus,
+  assignUserToEntity // ✅ NEW
 } from "../controllers/entity.controller";
 import { authenticateJWT } from "../middleware/auth.middleware";
 import { authorizeRoles } from "../middleware/rbac.middleware";
@@ -35,7 +37,8 @@ router.get(
   authorizeRoles("user"),
   getMyEntities
 );
-//GET entities by ID
+
+// GET entity by ID
 router.get(
   "/:id",
   authenticateJWT,
@@ -44,12 +47,29 @@ router.get(
   getEntityById
 );
 
+// UPDATE entity (full update)
 router.put(
   "/:id",
   authenticateJWT,
   authorizeRoles("admin", "manager", "user"),
   checkOwnership,
   updateEntity
+);
+
+// UPDATE ENTITY STATUS (INLINE TOGGLE)
+router.patch(
+  "/:id/status",
+  authenticateJWT,
+  authorizeRoles("admin", "manager"),
+  updateEntityStatus
+);
+
+// ✅ ASSIGN USER TO ENTITY
+router.post(
+  "/:id/assign",
+  authenticateJWT,
+  authorizeRoles("admin", "manager"),
+  assignUserToEntity
 );
 
 export default router;

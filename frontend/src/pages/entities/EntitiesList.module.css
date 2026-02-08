@@ -1,3 +1,4 @@
+/* ---------- Container ---------- */
 .container {
   padding: 24px;
   background-color: #ffffff;
@@ -22,7 +23,7 @@
 /* ---------- Table Header ---------- */
 .header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1.5fr 1fr; /* Name | Status | Assigned User | Actions */
   padding: 12px 16px;
   background-color: #144287;
   font-weight: 600;
@@ -33,7 +34,7 @@
 /* ---------- Table Row ---------- */
 .row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1.5fr 1fr; /* must match header */
   padding: 12px 16px;
   border-top: 1px solid #e0e0e0;
   align-items: center;
@@ -57,7 +58,6 @@
   width: fit-content;
 }
 
-/* RENAMED: avoid generic `.active` collision */
 .active {
   background-color: #20a548;
   color: #ffffff;
@@ -68,20 +68,45 @@
   color: #ffffff;
 }
 
-/* ---------- Edit Button ---------- */
-.editBtn {
-  padding: 6px 10px;
-  font-size: 13px;
-  border: none;
+/* ---------- Assigned User Dropdown ---------- */
+.assignDropdown {
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid #d1d5db;
   border-radius: 4px;
+  background-color: #ffffff;
+  color: #111827;
   cursor: pointer;
-  background-color: #1a73e8;
-  color: #ffffff;
-  transition: background-color 0.15s ease;
 }
 
-.editBtn:hover {
-  background-color: #1558b0;
+.assignDropdown:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Actions Column ---------- */
+.actionsCell {
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- Inline Status Toggle ---------- */
+.statusToggleBtn {
+  all: unset;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1a73e8;
+  font-weight: 500;
+}
+
+.statusToggleBtn:hover {
+  text-decoration: underline;
+}
+
+.statusToggleBtn:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+  text-decoration: none;
 }
 
 /* ---------- Info & Error ---------- */
@@ -105,10 +130,7 @@
   font-size: 14px;
 }
 
-/*
-  HARD RESET for pagination buttons
-  This completely isolates them from global `button` styles in app.css
-*/
+/* HARD RESET for pagination buttons */
 .pageBtn,
 .navBtn {
   all: unset;
