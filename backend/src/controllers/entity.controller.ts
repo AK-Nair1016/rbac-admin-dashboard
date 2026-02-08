@@ -51,31 +51,39 @@ export const getAllEntities = async (req: Request, res: Response) => {
 
     const status = req.query.status as string | undefined;
 
-    let query = `
-      SELECT id, name, status, owner_id, created_at
-      FROM entities
-    `;
+    let whereClause = "";
     const values: any[] = [];
     let idx = 1;
 
     if (status) {
-      query += ` WHERE status = $${idx++}`;
+      whereClause = `WHERE status = $${idx++}`;
       values.push(status);
     }
 
-    query += `
+    // 🔹 Data query
+    const dataQuery = `
+      SELECT id, name, status, owner_id, created_at
+      FROM entities
+      ${whereClause}
       ORDER BY created_at DESC
       LIMIT $${idx++} OFFSET $${idx}
     `;
-    values.push(limit, offset);
 
-    const result = await pool.query(query, values);
+    const dataValues = [...values, limit, offset];
+    const dataResult = await pool.query(dataQuery, dataValues);
+
+    // 🔹 Count query (NO limit / offset)
+    const countQuery = `
+      SELECT COUNT(*) FROM entities
+      ${whereClause}
+    `;
+    const countResult = await pool.query(countQuery, values);
 
     return res.status(200).json({
       page,
       limit,
-      total: result.rows.length, // ✅ rename
-      data: result.rows,         // ✅ rename
+      total: Number(countResult.rows[0].count),
+      data: dataResult.rows,
     });
   } catch (error) {
     console.error("GET ALL ENTITIES ERROR:", error);
@@ -84,16 +92,18 @@ export const getAllEntities = async (req: Request, res: Response) => {
 };
 
 
+
 // GET my entities (User)
 export const getMyEntities = async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
+    const user = req.user!;
 
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const offset = (page - 1) * limit;
 
-    const query = `
+    // 🔹 Data query
+    const dataQuery = `
       SELECT id, name, status, owner_id, created_at
       FROM entities
       WHERE owner_id = $1
@@ -101,23 +111,32 @@ export const getMyEntities = async (req: Request, res: Response) => {
       LIMIT $2 OFFSET $3
     `;
 
-    const result = await pool.query(query, [
+    const dataResult = await pool.query(dataQuery, [
       user.userId,
       limit,
       offset,
     ]);
 
+    // 🔹 Count query
+    const countQuery = `
+      SELECT COUNT(*) FROM entities
+      WHERE owner_id = $1
+    `;
+
+    const countResult = await pool.query(countQuery, [user.userId]);
+
     return res.status(200).json({
       page,
       limit,
-      count: result.rows.length,
-      entities: result.rows,
+      total: Number(countResult.rows[0].count),
+      data: dataResult.rows,
     });
   } catch (error) {
     console.error("GET MY ENTITIES ERROR:", error);
     return res.status(500).json({ message: "Failed to fetch user entities" });
   }
 };
+
 
 // GET EntityById
 export const getEntityById = async (req: Request, res: Response) => {
@@ -157,11 +176,15 @@ export const updateEntity = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Entity ID is required" });
     }
 
-    if (!name && !status) {
-      return res.status(400).json({
-        message: "At least one field (name or status) must be provided",
-      });
-    }
+    if (
+  (name === undefined || name.trim() === "") &&
+  (status === undefined || status.trim() === "")
+) {
+  return res.status(400).json({
+    message: "At least one valid field must be provided",
+  });
+}
+
 
     // Build dynamic update safely
     const fields: string[] = [];
@@ -179,6 +202,12 @@ export const updateEntity = async (req: Request, res: Response) => {
     }
 
     values.push(entityId);
+    if (fields.length === 0) {
+  return res.status(400).json({
+    message: "No valid fields to update",
+  });
+}
+
 
     const query = `
       UPDATE entities
