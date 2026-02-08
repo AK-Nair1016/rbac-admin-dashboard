@@ -5,6 +5,9 @@ import { getAllEntities, getMyEntities } from "../../api/entities";
 import type { Entity } from "../../api/entities";
 import styles from "./EntitiesList.module.css";
 
+const LIMIT = 10;
+const MAX_VISIBLE_PAGES = 5;
+
 const EntitiesList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -13,19 +16,46 @@ const EntitiesList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
   if (!user) return null;
+
+  const totalPages = Math.max(1, Math.ceil(total / LIMIT));
+
+  // 🔹 Page numbers generator (Google-style)
+  const getPageNumbers = (): number[] => {
+    const pages: number[] = [];
+
+    let start = Math.max(1, page - Math.floor(MAX_VISIBLE_PAGES / 2));
+    let end = start + MAX_VISIBLE_PAGES - 1;
+
+    if (end > totalPages) {
+      end = totalPages;
+      start = Math.max(1, end - MAX_VISIBLE_PAGES + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
 
   useEffect(() => {
     const fetchEntities = async () => {
       try {
         setLoading(true);
+        setError(null);
 
         const response =
           user.role === "user"
-            ? await getMyEntities()
-            : await getAllEntities();
+            ? await getMyEntities({ page, limit: LIMIT })
+            : await getAllEntities({ page, limit: LIMIT });
 
         setEntities(response.data);
+        setTotal(response.total);
       } catch {
         setError("Failed to load entities");
       } finally {
@@ -34,7 +64,7 @@ const EntitiesList = () => {
     };
 
     fetchEntities();
-  }, [user]);
+  }, [user, page]);
 
   if (loading) return <p className={styles.info}>Loading entities…</p>;
   if (error) return <p className={styles.error}>{error}</p>;
@@ -88,6 +118,37 @@ const EntitiesList = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Pagination */}
+      <div className={styles.pagination}>
+        <button
+          className={styles.navBtn}
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+        >
+          ‹
+        </button>
+
+        {getPageNumbers().map((p) => (
+          <button
+            key={p}
+            className={`${styles.pageBtn} ${
+              p === page ? styles.activePage : ""
+            }`}
+            onClick={() => setPage(p)}
+          >
+            {p}
+          </button>
+        ))}
+
+        <button
+          className={styles.navBtn}
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          ›
+        </button>
       </div>
     </div>
   );
