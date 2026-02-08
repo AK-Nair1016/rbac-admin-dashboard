@@ -25,7 +25,7 @@ const EditEntity = () => {
         const data = await getEntityById(id);
 
         setEntity(data);
-        setName(data.name);
+        setName(data.name??"");
         setStatus(data.status ?? "ACTIVE");
       } catch {
         setError("Failed to load entity");
@@ -42,7 +42,7 @@ const EditEntity = () => {
 
     if (!id) return;
 
-    if (!name.trim()) {
+    if (!name||!name.trim()) {
       setError("Name is required");
       return;
     }
@@ -51,10 +51,23 @@ const EditEntity = () => {
       setSaving(true);
       setError(null);
 
-      await updateEntity(id, {
-        name,
-        status,
-      });
+const payload: any = {};
+
+if (name && name.trim()) {
+  payload.name = name.trim();
+}
+
+if (status) {
+  payload.status = status;
+}
+
+if (Object.keys(payload).length === 0) {
+  setError("Nothing to update");
+  return;
+}
+
+await updateEntity(id, payload);
+
 
       navigate("/entities");
     } catch {

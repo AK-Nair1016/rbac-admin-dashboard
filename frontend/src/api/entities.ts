@@ -8,7 +8,7 @@ import axios from "./axios";
 export interface Entity {
   id: string;
   name: string;
-  status: string;
+  status: "ACTIVE"| "INACTIVE";
   description?: string;
   ownerId: string;
   createdAt: string;

@@ -8,7 +8,7 @@
   margin-bottom: 16px;
   font-size: 22px;
   font-weight: 600;
-  color: #111827; /* black text */
+  color: #111827;
 }
 
 /* ---------- Table Wrapper ---------- */
@@ -27,7 +27,7 @@
   background-color: #144287;
   font-weight: 600;
   font-size: 14px;
-  color: #ffffff; /* white text */
+  color: #ffffff;
 }
 
 /* ---------- Table Row ---------- */
@@ -38,14 +38,13 @@
   border-top: 1px solid #e0e0e0;
   align-items: center;
   background-color: #ffffff;
-  color: #111827; /* black text */
+  color: #111827;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* ---------- Row Hover ---------- */
 .row:hover {
   background-color: #488aa6;
-  color: #ffffff; /* keep contrast on hover */
+  color: #ffffff;
 }
 
 /* ---------- Status Badge ---------- */
@@ -58,13 +57,12 @@
   width: fit-content;
 }
 
-/* Active status */
+/* RENAMED: avoid generic `.active` collision */
 .active {
   background-color: #20a548;
   color: #ffffff;
 }
 
-/* Inactive status */
 .inactive {
   background-color: #d93025;
   color: #ffffff;
@@ -72,10 +70,10 @@
 
 /* ---------- Edit Button ---------- */
 .editBtn {
-  padding: 6px 6px;
+  padding: 6px 10px;
   font-size: 13px;
   border: none;
-  border-radius: 2px;
+  border-radius: 4px;
   cursor: pointer;
   background-color: #1a73e8;
   color: #ffffff;
@@ -95,4 +93,47 @@
 .error {
   padding: 16px;
   color: #d93025;
+}
+
+/* ---------- Pagination ---------- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+/*
+  HARD RESET for pagination buttons
+  This completely isolates them from global `button` styles in app.css
+*/
+.pageBtn,
+.navBtn {
+  all: unset;
+  cursor: pointer;
+  font-size: 14px;
+  color: #1a73e8;
+  padding: 2px 4px;
+}
+
+.pageBtn:hover,
+.navBtn:hover {
+  text-decoration: underline;
+}
+
+/* Active page */
+.activePage {
+  font-weight: 600;
+  color: #111827;
+  text-decoration: underline;
+  cursor: default;
+}
+
+/* Disabled navigation */
+.navBtn:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+  text-decoration: none;
 }
