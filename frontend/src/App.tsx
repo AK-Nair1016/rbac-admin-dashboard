@@ -4,7 +4,8 @@ import Dashboard from "./pages/Dashboard";
 import EntitiesList from "./pages/entities/EntitiesList";
 import CreateEntity from "./pages/entities/CreateEntity";
 import EditEntity from "./pages/entities/EditEntity";
-import DashboardLayout from "./Layouts/DashboardLayout"; // ✅ casing fixed
+import UsersPermit from "./pages/usersPermit"; // ✅ NEW
+import DashboardLayout from "./Layouts/DashboardLayout";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
@@ -13,10 +14,10 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public route */}
+          {/* Public */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected admin layout */}
+          {/* Protected Layout */}
           <Route
             element={
               <ProtectedRoute allowedRoles={["admin", "manager", "user"]}>
@@ -24,18 +25,22 @@ function App() {
               </ProtectedRoute>
             }
           >
+            {/* Dashboard */}
             <Route path="/dashboard" element={<Dashboard />} />
 
+            {/* Entities */}
             <Route path="/entities" element={<EntitiesList />} />
+            <Route path="/entities/new" element={<CreateEntity />} />
+            <Route path="/entities/:id/edit" element={<EditEntity />} />
 
+            {/* ✅ User Permissions */}
             <Route
-              path="/entities/new"
-              element={<CreateEntity />}
-            />
-
-            <Route
-              path="/entities/:id/edit"
-              element={<EditEntity />}
+              path="/users"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <UsersPermit />
+                </ProtectedRoute>
+              }
             />
           </Route>
 
