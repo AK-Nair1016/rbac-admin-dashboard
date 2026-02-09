@@ -2,13 +2,17 @@ import { Router } from "express";
 import {
   getAllPermissions,
   upsertPermission,
+  getMyPermissions,
 } from "../controllers/permission.controller";
 import { authenticateJWT } from "../middleware/auth.middleware";
 import { authorizeRoles } from "../middleware/rbac.middleware";
 
 const router = Router();
 
-// View permissions
+// USER → own permissions
+router.get("/me", authenticateJWT, getMyPermissions);
+
+// ADMIN / MANAGER → list all
 router.get(
   "/",
   authenticateJWT,
@@ -16,7 +20,7 @@ router.get(
   getAllPermissions
 );
 
-// Create / update permission
+// ADMIN / MANAGER → upsert
 router.post(
   "/",
   authenticateJWT,

@@ -1,16 +1,32 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
 
-/**
- * GET all permissions (for Users page)
- * Admin / Manager only
- */
-export const getAllPermissions = async (
-  req: Request,
-  res: Response
-) => {
+// 🔹 USER: get own permissions
+export const getMyPermissions = async (req: Request, res: Response) => {
   try {
-    const query = `
+    const userId = req.user!.userId;
+
+    const result = await pool.query(
+      `
+      SELECT entity_id AS "entityId", permission
+      FROM entity_permissions
+      WHERE user_id = $1
+      `,
+      [userId]
+    );
+
+    return res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("GET MY PERMISSIONS ERROR:", err);
+    return res.status(500).json({ message: "Failed to fetch permissions" });
+  }
+};
+
+// 🔹 ADMIN / MANAGER: list all permissions
+export const getAllPermissions = async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(
+      `
       SELECT
         ep.id,
         u.email AS user_email,
@@ -22,28 +38,18 @@ export const getAllPermissions = async (
       JOIN users u ON u.id = ep.user_id
       JOIN entities e ON e.id = ep.entity_id
       ORDER BY u.email, e.name
-    `;
+      `
+    );
 
-    const result = await pool.query(query);
-
-    return res.status(200).json({
-      data: result.rows,
-    });
+    return res.status(200).json({ data: result.rows });
   } catch (error) {
     console.error("GET PERMISSIONS ERROR:", error);
-    return res.status(500).json({
-      message: "Failed to fetch permissions",
-    });
+    return res.status(500).json({ message: "Failed to fetch permissions" });
   }
 };
 
-/**
- * UPSERT permission (create or update)
- */
-export const upsertPermission = async (
-  req: Request,
-  res: Response
-) => {
+// 🔹 ADMIN / MANAGER: create or update permission
+export const upsertPermission = async (req: Request, res: Response) => {
   try {
     const { userId, entityId, permission } = req.body;
 
@@ -54,26 +60,19 @@ export const upsertPermission = async (
     }
 
     if (!["READ", "WRITE", "READ_WRITE"].includes(permission)) {
-      return res.status(400).json({
-        message: "Invalid permission value",
-      });
+      return res.status(400).json({ message: "Invalid permission value" });
     }
 
-    const query = `
+    const result = await pool.query(
+      `
       INSERT INTO entity_permissions (user_id, entity_id, permission)
       VALUES ($1, $2, $3)
       ON CONFLICT (user_id, entity_id)
-      DO UPDATE SET
-        permission = EXCLUDED.permission,
-        updated_at = NOW()
+      DO UPDATE SET permission = EXCLUDED.permission
       RETURNING *
-    `;
-
-    const result = await pool.query(query, [
-      userId,
-      entityId,
-      permission,
-    ]);
+      `,
+      [userId, entityId, permission]
+    );
 
     return res.status(200).json({
       message: "Permission saved",
@@ -81,8 +80,6 @@ export const upsertPermission = async (
     });
   } catch (error) {
     console.error("UPSERT PERMISSION ERROR:", error);
-    return res.status(500).json({
-      message: "Failed to save permission",
-    });
+    return res.status(500).json({ message: "Failed to save permission" });
   }
 };
