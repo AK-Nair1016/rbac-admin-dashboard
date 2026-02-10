@@ -1,19 +1,34 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
 
-// CREATE entity (Admin, Manager)
 export const createEntity = async (req: Request, res: Response) => {
   console.log("🟢 [CREATE ENTITY] Entered");
+  console.log("🔐 req.user:", req.user);
+  console.log("📦 req.body:", req.body);
 
   try {
-    const { name, status } = req.body;
-    const ownerId = req.user!.userId;
-
-    if (!name) {
-      return res.status(400).json({
-        message: "Name is required",
-      });
+    if (!req.user) {
+      console.error("❌ [CREATE ENTITY] Missing req.user");
+      return res.status(401).json({ message: "Unauthorized" });
     }
+
+    const { name, status } = req.body;
+    const ownerId = req.user.userId;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+
+    const safeStatus =
+      status === "ACTIVE" || status === "INACTIVE"
+        ? status
+        : "ACTIVE";
+
+    console.log("🧩 Inserting entity:", {
+      name,
+      status: safeStatus,
+      ownerId,
+    });
 
     const query = `
       INSERT INTO entities (name, status, owner_id)
@@ -22,25 +37,25 @@ export const createEntity = async (req: Request, res: Response) => {
     `;
 
     const result = await pool.query(query, [
-      name,
-      status ?? "ACTIVE",
+      name.trim(),
+      safeStatus,
       ownerId,
     ]);
+
+    console.log("✅ [CREATE ENTITY] Insert success:", result.rows[0]);
 
     return res.status(201).json({
       message: "Entity created successfully",
       data: result.rows[0],
     });
   } catch (error) {
-    console.error("❌ [CREATE ENTITY] Error:", error);
-
-    return res.status(500).json({
-      message: "Failed to create entity",
-    });
+    console.error("❌ [CREATE ENTITY] ERROR:", error);
+    return res.status(500).json({ message: "Failed to create entity" });
   } finally {
     console.log("🔵 [CREATE ENTITY] Exited");
   }
 };
+
 
 // GET all entities (Admin, Manager)
 export const getAllEntities = async (req: Request, res: Response) => {

@@ -6,6 +6,7 @@ import protectedRoutes from "./routes/protected.routes";
 import entityRoutes from "./routes/entity.routes";
 import metricsRoutes from "./routes/metrics.routes"
 import userRoutes from "./routes/users.routes";
+import permissionRoutes from "./routes/permission.routes";
 
 
 const app = express();
@@ -25,13 +26,14 @@ app.use(
 
 app.use(cors());
 
+
 // routes
 app.use("/auth", authRoutes);
 app.use("/protected", protectedRoutes);
 app.use("/entities", entityRoutes);
 app.use("/metrics",metricsRoutes)
 app.use("/users", userRoutes);
-
+app.use("/permissions", permissionRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "OK" });

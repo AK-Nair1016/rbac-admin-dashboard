@@ -20,18 +20,15 @@ interface AssignableUser {
 }
 
 const EntitiesList = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
 
   const [entities, setEntities] = useState<Entity[]>([]);
   const [users, setUsers] = useState<AssignableUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Pagination
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-
-  // Inline update state
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   if (!user) return null;
@@ -40,7 +37,6 @@ const EntitiesList = () => {
 
   const getPageNumbers = (): number[] => {
     const pages: number[] = [];
-
     let start = Math.max(1, page - Math.floor(MAX_VISIBLE_PAGES / 2));
     let end = start + MAX_VISIBLE_PAGES - 1;
 
@@ -59,21 +55,21 @@ const EntitiesList = () => {
         setLoading(true);
         setError(null);
 
-        const entityResponse =
+        const res =
           user.role === "user"
             ? await getMyEntities({ page, limit: LIMIT })
             : await getAllEntities({ page, limit: LIMIT });
 
-        setEntities(entityResponse.data);
-        setTotal(entityResponse.total);
+        setEntities(res.data);
+        setTotal(res.total);
 
-        // Only admins / managers need users list
         if (user.role === "admin" || user.role === "manager") {
           const userList = await getAssignableUsers();
           setUsers(userList);
         }
-      } catch {
-        setError("Failed to load data");
+      } catch (err) {
+        console.error("❌ Failed to load entities", err);
+        setError("Failed to load entities");
       } finally {
         setLoading(false);
       }
@@ -95,29 +91,34 @@ const EntitiesList = () => {
           e.id === entity.id ? { ...e, status: newStatus } : e
         )
       );
-    } catch {
-      alert("Failed to update status");
     } finally {
       setUpdatingId(null);
     }
   };
 
   const handleAssignUser = async (
+    
     entityId: string,
     userId: string
   ) => {
+    if (!userId) return;
+    console.group("🧩 Assign User to Entity");
+console.log("entityId:", entityId);
+console.log("userId:", userId);
+console.groupEnd();
+
     try {
       await assignUserToEntity(entityId, userId);
       alert("User assigned successfully");
     } catch {
       alert("Failed to assign user");
     }
+    console.log("✅ Assignment API success");
+
   };
 
   if (loading) return <p className={styles.info}>Loading entities…</p>;
   if (error) return <p className={styles.error}>{error}</p>;
-  if (entities.length === 0)
-    return <p className={styles.info}>No entities found</p>;
 
   const canManage =
     user.role === "admin" || user.role === "manager";
@@ -134,64 +135,70 @@ const EntitiesList = () => {
           <span>Actions</span>
         </div>
 
-        {entities.map((entity) => (
-          <div key={entity.id} className={styles.row}>
-            <span>{entity.name}</span>
+        {entities.map((entity) => {
+          const canRead =
+            canManage || hasPermission(entity.id, "READ");
+          const canWrite =
+            canManage || hasPermission(entity.id, "WRITE");
 
-            <span
-              className={`${styles.status} ${
-                entity.status === "ACTIVE"
-                  ? styles.active
-                  : styles.inactive
-              }`}
-            >
-              {entity.status}
-            </span>
+          if (!canRead) return null;
 
-            {/* Assigned User */}
-            <span>
-              {canManage ? (
-                <select
-                  defaultValue=""
-                  onChange={(e) =>
-                    handleAssignUser(entity.id, e.target.value)
-                  }
-                >
-                  <option value="" disabled>
-                    Assign user
-                  </option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.email}
+          return (
+            <div key={entity.id} className={styles.row}>
+              <span>{entity.name}</span>
+
+              <span
+                className={`${styles.status} ${
+                  entity.status === "ACTIVE"
+                    ? styles.active
+                    : styles.inactive
+                }`}
+              >
+                {entity.status}
+              </span>
+
+              <span>
+                {canManage && canWrite ? (
+                  <select
+                    defaultValue=""
+                    onChange={(e) =>
+                      handleAssignUser(entity.id, e.target.value)
+                    }
+                  >
+                    <option value="" disabled>
+                      Assign user
                     </option>
-                  ))}
-                </select>
-              ) : (
-                <span>-</span>
-              )}
-            </span>
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.email}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  "-"
+                )}
+              </span>
 
-            {/* Actions */}
-            <span>
-              {canManage && (
-                <button
-                  className={styles.statusToggleBtn}
-                  disabled={updatingId === entity.id}
-                  onClick={() => handleStatusToggle(entity)}
-                >
-                  {updatingId === entity.id
-                    ? "Updating…"
-                    : entity.status === "ACTIVE"
-                    ? "Deactivate"
-                    : "Activate"}
-                </button>
-              )}
-            </span>
-          </div>
-        ))}
+              <span>
+                {canWrite && (
+                  <button
+                    className={styles.statusToggleBtn}
+                    disabled={updatingId === entity.id}
+                    onClick={() => handleStatusToggle(entity)}
+                  >
+                    {updatingId === entity.id
+                      ? "Updating…"
+                      : entity.status === "ACTIVE"
+                      ? "Deactivate"
+                      : "Activate"}
+                  </button>
+                )}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Pagination */}
       <div className={styles.pagination}>
         <button
           className={styles.navBtn}

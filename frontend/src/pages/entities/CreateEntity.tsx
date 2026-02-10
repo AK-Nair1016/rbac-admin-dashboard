@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { createEntity } from "../../api/entities";
+import styles from "./CreateEntity.module.css";
 
 const CreateEntity = () => {
   const { user } = useAuth();
@@ -12,7 +13,6 @@ const CreateEntity = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // UX-only RBAC
   if (user?.role === "user") {
     return <p>You are not allowed to create entities.</p>;
   }
@@ -29,13 +29,14 @@ const CreateEntity = () => {
       setLoading(true);
       setError(null);
 
-      await createEntity({
-        name,
-        status,
-      });
+      console.log("📤 Creating entity:", { name, status });
 
+      await createEntity({ name, status });
+
+      console.log("✅ Entity created successfully");
       navigate("/entities");
-    } catch {
+    } catch (err) {
+      console.error("❌ Create entity failed", err);
       setError("Failed to create entity");
     } finally {
       setLoading(false);
@@ -43,11 +44,11 @@ const CreateEntity = () => {
   };
 
   return (
-    <div>
-      <h1>Create Entity</h1>
+    <div className={styles.container}>
+      <h1 className={styles.title}>Create Entity</h1>
 
-      <form onSubmit={handleSubmit}>
-        <div>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <div className={styles.field}>
           <label>Name</label>
           <input
             value={name}
@@ -55,7 +56,7 @@ const CreateEntity = () => {
           />
         </div>
 
-        <div>
+        <div className={styles.field}>
           <label>Status</label>
           <select
             value={status}
@@ -66,10 +67,14 @@ const CreateEntity = () => {
           </select>
         </div>
 
-        {error && <p>{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create"}
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={loading}
+        >
+          {loading ? "Creating…" : "Create Entity"}
         </button>
       </form>
     </div>
