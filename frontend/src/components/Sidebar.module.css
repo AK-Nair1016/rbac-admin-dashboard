@@ -6,7 +6,8 @@
   flex-direction: column;
   padding: 24px 16px;
 }
-/* SIDEBAR HEADER */
+
+/* ===== Header ===== */
 
 .sidebarHeader {
   display: flex;
@@ -16,8 +17,6 @@
   padding: 0 8px;
 }
 
-/* BRAND */
-
 .brand {
   font-size: 15px;
   font-weight: 600;
@@ -25,8 +24,7 @@
   letter-spacing: 0.3px;
 }
 
-
-/* NAVIGATION */
+/* ===== Navigation ===== */
 
 .nav {
   display: flex;
@@ -55,7 +53,16 @@
   color: #ffffff;
 }
 
-/* LOGOUT */
+/* ➕ Sub item (Create Entity) */
+/* ➕ Sub item (Create Entity) */
+.subItem {
+  margin-left: 28px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+
+/* ===== Logout ===== */
 
 .logout {
   margin-top: auto;
@@ -74,11 +81,11 @@
 .logout:hover {
   background-color: #1e293b;
 }
-/* COLLAPSED STATE */
+
+/* ===== Collapsed ===== */
 
 .collapsed {
   width: 72px;
-  /* padding: 24px 8px; */
 }
 
 .collapsed .navItem {
@@ -89,8 +96,7 @@
   justify-content: center;
 }
 
-
-/* COLLAPSE BUTTON */
+/* ===== Collapse Button ===== */
 
 .collapseBtn {
   background: none;
@@ -98,7 +104,6 @@
   color: #cbd5e1;
   cursor: pointer;
   padding: 6px;
-  border-radius: none;
 }
 
 .collapseBtn:hover {

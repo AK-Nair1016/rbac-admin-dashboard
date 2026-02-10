@@ -26,6 +26,7 @@ app.use(
 
 app.use(cors());
 
+
 // routes
 app.use("/auth", authRoutes);
 app.use("/protected", protectedRoutes);
