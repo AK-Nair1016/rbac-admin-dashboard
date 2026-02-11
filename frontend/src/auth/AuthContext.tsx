@@ -5,22 +5,16 @@ import {
   useState,
 } from "react";
 import { getMyPermissions } from "../api/permissions";
-
+import type { EntityPermission } from "../api/permissions";
 /* ===== Types ===== */
 
 export type UserRole = "admin" | "manager" | "user";
 export type PermissionAction = "READ" | "WRITE";
-export type PermissionType = "READ" | "WRITE" | "READ_WRITE";
 
 export interface AuthUser {
   userId: string;
   employeeId: string;
   role: UserRole;
-}
-
-export interface EntityPermission {
-  entityId: string;
-  permission: PermissionType;
 }
 
 export interface AuthContextType {
@@ -130,7 +124,7 @@ export const AuthProvider = ({
     entityId: string,
     action: PermissionAction
   ): boolean => {
-    // ✅ HARD OVERRIDE
+    // Hard override for Admin / Manager
     if (
       user?.role === "admin" ||
       user?.role === "manager"
