@@ -1,77 +1,123 @@
-/* 🧱 Page Container */
+/* =========================
+   PAGE CONTAINER
+========================= */
+
 .container {
-  padding: 24px;
-  background: #f5f6f8; /* light neutral */
-  min-height: 100vh;
+  padding: 32px;
 }
 
-/* 🏷 Title */
+/* =========================
+   TITLE
+========================= */
+
 .title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 600;
-  margin-bottom: 20px;
-  color: #111827; /* dark text */
+  margin-bottom: 28px;
+  color: #0f172a;
 }
 
-/* 📋 Table Wrapper */
+/* =========================
+   TABLE WRAPPER
+========================= */
+
 .table {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-/* 📑 Header + Row Grid Layout */
-.header,
+/* =========================
+   HEADER
+========================= */
+
+.header {
+  display: grid;
+  grid-template-columns: 2fr 2fr 3fr;
+  padding: 16px 24px;
+  background: #0f172a; /* dark slate */
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* =========================
+   ROW
+========================= */
+
 .row {
   display: grid;
   grid-template-columns: 2fr 2fr 3fr;
-  padding: 14px 18px;
+  padding: 18px 24px;
   align-items: center;
-}
-
-/* 📌 Header Styling */
-.header {
-  background: #1f4b8f; /* professional blue */
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-/* 📄 Row Styling */
-.row {
-  border-top: 1px solid #f0f0f0;
-  color: #111827; /* black text */
+  border-top: 1px solid #f1f5f9;
   font-size: 14px;
   background: #ffffff;
+  transition: background 0.15s ease;
 }
 
-/* 🖱 Hover Effect */
 .row:hover {
-  background: #f9fafb;
+  background: #f8fafc;
 }
 
-/* 🔑 Permission Checkbox Layout */
+/* =========================
+   USER + ENTITY TEXT
+========================= */
+
+.row span {
+  color: #1e293b;
+}
+
+/* =========================
+   PERMISSION SECTION
+========================= */
+
 .permissions {
   display: flex;
-  gap: 24px;
+  gap: 32px;
   align-items: center;
 }
 
-/* 🏷 Permission Label */
+/* =========================
+   PERMISSION LABEL
+========================= */
+
 .permissions label {
-  font-size: 13px;
-  color: #111827;
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.permissions label:hover {
+  color: #2563eb;
+}
+
+/* =========================
+   CHECKBOX STYLE
+========================= */
+
+.permissions input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
   cursor: pointer;
 }
 
-/* ☑ Checkbox Styling */
-.permissions input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
+/* =========================
+   LOADING / ERROR STATES
+========================= */
+
+.loading,
+.error {
+  padding: 24px;
+  font-size: 14px;
+  color: #64748b;
 }

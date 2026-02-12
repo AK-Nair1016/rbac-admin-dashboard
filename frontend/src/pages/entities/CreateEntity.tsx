@@ -44,6 +44,7 @@ const CreateEntity = () => {
   };
 
   return (
+  <div className={styles.page}>
     <div className={styles.container}>
       <h1 className={styles.title}>Create Entity</h1>
 
@@ -78,6 +79,7 @@ const CreateEntity = () => {
         </button>
       </form>
     </div>
+  </div>
   );
 };
 

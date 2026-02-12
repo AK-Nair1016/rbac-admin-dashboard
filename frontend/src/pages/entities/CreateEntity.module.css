@@ -1,28 +1,52 @@
-.container {
-  max-width: 640px;
-  background: #ffffff;
-  padding: 32px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+/* =========================
+   PAGE WRAPPER
+========================= */
+
+.page {
+  padding: 40px;
+  display: flex;
+  justify-content: center;
 }
 
+/* =========================
+   CARD CONTAINER
+========================= */
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  background: #ffffff;
+  padding: 36px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+}
+
+/* =========================
+   TITLE
+========================= */
+
 .title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 600;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   color: #0f172a;
 }
+
+/* =========================
+   FORM STRUCTURE
+========================= */
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .field label {
@@ -31,35 +55,61 @@
   color: #475569;
 }
 
+/* =========================
+   INPUTS
+========================= */
+
 .field input,
 .field select {
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 11px 14px;
+  border-radius: 10px;
   border: 1px solid #d1d5db;
   font-size: 14px;
+  background-color: #f9fafb;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .field input:focus,
 .field select:focus {
   outline: none;
   border-color: #2563eb;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
+
+/* =========================
+   ERROR MESSAGE
+========================= */
 
 .error {
   color: #dc2626;
   font-size: 13px;
+  font-weight: 500;
 }
 
+/* =========================
+   PRIMARY BUTTON
+========================= */
+
 .submitBtn {
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 12px;
   border-radius: 10px;
   border: none;
-  background: #22c55e;
+  background: #2563eb;  /* changed from green */
   color: #ffffff;
   font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+.submitBtn:hover {
+  background: #1d4ed8;
+}
+
+.submitBtn:active {
+  transform: translateY(1px);
 }
 
 .submitBtn:disabled {
