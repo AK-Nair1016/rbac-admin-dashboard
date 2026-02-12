@@ -154,9 +154,9 @@ This project reflects how access control is implemented in small-to-mid scale pr
 
 ## ⚙️ Local Setup
 
-### Backend
+### Backend Setup
 
-Create a `.env` file inside the `backend` directory:
+1. Create a `.env` file inside the `backend` directory:
 
 ```
 PORT=5000
@@ -166,25 +166,50 @@ FRONTEND_URL=http://localhost:5173
 NODE_ENV=development
 ```
 
-Install dependencies and start:
+2. Install dependencies:
 
 ```
 cd backend
 npm install
-npm run dev
+```
+
+3. Start development server:
+
+```
+npx ts-node-dev --files src/server.ts
 ```
 
 ---
 
-### Frontend
+### Frontend Setup
+
+1. Install dependencies:
 
 ```
 cd frontend
 npm install
+```
+
+2. Start development server:
+
+```
 npm run dev
 ```
 
 ---
+
+## 📌 Future Improvements
+
+- Improve permission synchronization across views
+- UI refinement and UX enhancements
+- Cloud deployment configuration
+- Expand metrics dashboard
+
+---
+
+## 📄 Resume Summary
+
+Designed and implemented a secure full-stack admin dashboard with backend-enforced role-based access control, entity-level permissions, and centralized authorization middleware using React, Express, PostgreSQL, and JWT.
 
 ## 📌 Future Improvements
 
