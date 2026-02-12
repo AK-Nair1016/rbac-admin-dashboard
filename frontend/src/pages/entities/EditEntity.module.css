@@ -1,55 +1,42 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal {
-  width: 420px;
+.container {
+  max-width: 640px;
   background: #ffffff;
+  padding: 32px;
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
 }
 
-.header {
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: #0f172a;
+}
+
+.form {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.2rem;
-}
-
-.closeBtn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #6b7280;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .field {
-  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .field label {
-  display: block;
-  margin-bottom: 0.4rem;
-  font-size: 0.85rem;
-  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
 }
 
 .field input,
 .field select {
-  width: 100%;
-  padding: 0.9rem;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid #d1d5db;
-  font-size: 0.95rem;
-  background: #ffffff;
+  font-size: 14px;
 }
 
 .field input:focus,
@@ -58,37 +45,34 @@
   border-color: #2563eb;
 }
 
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.actions button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.actions button[type="submit"] {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.cancelBtn {
-  background: #e5e7eb;
-}
-
 .error {
   color: #dc2626;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
+  font-size: 13px;
 }
 
-.loading {
-  text-align: center;
-  padding: 1.5rem 0;
+.submitBtn {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.submitBtn:hover {
+  background: #1d4ed8;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.state {
+  padding: 24px;
+  font-size: 14px;
+  color: #64748b;
 }

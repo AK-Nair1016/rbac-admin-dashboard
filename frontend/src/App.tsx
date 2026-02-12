@@ -32,6 +32,7 @@ function App() {
             <Route path="/entities" element={<EntitiesList />} />
             <Route path="/entities/new" element={<CreateEntity />} />
             <Route path="/entities/:id/edit" element={<EditEntity />} />
+            
 
             {/* ✅ User Permissions */}
             <Route
