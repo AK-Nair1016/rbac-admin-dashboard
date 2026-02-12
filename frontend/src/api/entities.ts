@@ -32,19 +32,57 @@ export interface EntityQueryParams {
           LIST APIs
    ========================= */
 
-export const getAllEntities = async (
-  params: EntityQueryParams = {}
-): Promise<PaginatedResponse<Entity>> => {
-  const response = await axios.get("/entities", { params });
-  return response.data;
+// export const getAllEntities = async (
+//   params: EntityQueryParams = {}
+// ): Promise<PaginatedResponse<Entity>> => {
+//   const response = await axios.get("/entities", { params });
+//   return response.data;
+// };
+
+export const getAllEntities = async ({
+  page,
+  limit,
+  search,
+  status,
+}: {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: string;
+}) => {
+  const params = new URLSearchParams();
+
+  params.append("page", String(page));
+  params.append("limit", String(limit));
+
+  if (search) params.append("search", search);
+  if (status) params.append("status", status);
+
+  const res = await axios.get(`/entities?${params.toString()}`);
+  return res.data;
 };
 
-export const getMyEntities = async (
-  params: EntityQueryParams = {}
-): Promise<PaginatedResponse<Entity>> => {
-  const response = await axios.get("/entities/my", { params });
-  return response.data;
+
+export const getMyEntities = async ({
+  page,
+  limit,
+  search,
+}: {
+  page: number;
+  limit: number;
+  search?: string;
+}) => {
+  const params = new URLSearchParams();
+
+  params.append("page", String(page));
+  params.append("limit", String(limit));
+
+  if (search) params.append("search", search);
+
+  const res = await axios.get(`/entities/my?${params.toString()}`);
+  return res.data;
 };
+
 
 /* =========================
    CREATE API
