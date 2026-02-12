@@ -1,50 +1,77 @@
+/* 🧱 Page Container */
 .container {
   padding: 24px;
-  background: #892f2f;
+  background: #f5f6f8; /* light neutral */
+  min-height: 100vh;
 }
 
+/* 🏷 Title */
 .title {
   font-size: 22px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  color: #111827; /* dark text */
 }
 
+/* 📋 Table Wrapper */
 .table {
+  background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
+/* 📑 Header + Row Grid Layout */
 .header,
 .row {
   display: grid;
   grid-template-columns: 2fr 2fr 3fr;
-  padding: 12px 16px;
+  padding: 14px 18px;
   align-items: center;
 }
 
+/* 📌 Header Styling */
 .header {
-  background: #144287;
-  color: #fff;
+  background: #1f4b8f; /* professional blue */
+  color: #ffffff;
   font-weight: 600;
+  font-size: 14px;
 }
 
+/* 📄 Row Styling */
 .row {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #f0f0f0;
+  color: #111827; /* black text */
+  font-size: 14px;
+  background: #ffffff;
 }
 
+/* 🖱 Hover Effect */
 .row:hover {
   background: #f9fafb;
 }
 
+/* 🔑 Permission Checkbox Layout */
 .permissions {
   display: flex;
-  gap: 16px;
+  gap: 24px;
+  align-items: center;
 }
 
+/* 🏷 Permission Label */
 .permissions label {
   font-size: 13px;
+  color: #111827;
   display: flex;
-  gap: 4px;
+  gap: 6px;
   align-items: center;
+  cursor: pointer;
+}
+
+/* ☑ Checkbox Styling */
+.permissions input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
 }

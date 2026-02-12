@@ -11,6 +11,35 @@
   font-weight: 600;
   color: #111827;
 }
+.searchContainer {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.searchInput {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 250px;
+  font-size: 14px;
+}
+
+.searchBtn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: #4a90e2;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.searchBtn:hover {
+  background-color: #357bd8;
+}
+
 
 /* ---------- Table Wrapper ---------- */
 .table {

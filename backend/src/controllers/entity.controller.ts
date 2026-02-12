@@ -58,6 +58,55 @@ export const createEntity = async (req: Request, res: Response) => {
 
 
 // GET all entities (Admin, Manager)
+// export const getAllEntities = async (req: Request, res: Response) => {
+//   try {
+    
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 10;
+//     const offset = (page - 1) * limit;
+
+//     const status = req.query.status as string | undefined;
+
+//     let whereClause = "";
+//     const values: any[] = [];
+//     let idx = 1;
+
+//     if (status) {
+//       whereClause = `WHERE status = $${idx++}`;
+//       values.push(status);
+//     }
+
+//     // 🔹 Data query
+//     const dataQuery = `
+//       SELECT id, name, status, owner_id, created_at
+//       FROM entities
+//       ${whereClause}
+//       ORDER BY created_at DESC
+//       LIMIT $${idx++} OFFSET $${idx}
+//     `;
+
+//     const dataValues = [...values, limit, offset];
+//     const dataResult = await pool.query(dataQuery, dataValues);
+
+//     // 🔹 Count query (NO limit / offset)
+//     const countQuery = `
+//       SELECT COUNT(*) FROM entities
+//       ${whereClause}
+//     `;
+//     const countResult = await pool.query(countQuery, values);
+
+//     return res.status(200).json({
+//       page,
+//       limit,
+//       total: Number(countResult.rows[0].count),
+//       data: dataResult.rows,
+//     });
+//   } catch (error) {
+//     console.error("GET ALL ENTITIES ERROR:", error);
+//     return res.status(500).json({ message: "Failed to fetch entities" });
+//   }
+// };
+
 export const getAllEntities = async (req: Request, res: Response) => {
   try {
     const page = Number(req.query.page) || 1;
@@ -65,17 +114,22 @@ export const getAllEntities = async (req: Request, res: Response) => {
     const offset = (page - 1) * limit;
 
     const status = req.query.status as string | undefined;
+    const search = req.query.search as string | undefined;
 
-    let whereClause = "";
+    let whereClause = "WHERE 1=1";
     const values: any[] = [];
     let idx = 1;
 
     if (status) {
-      whereClause = `WHERE status = $${idx++}`;
+      whereClause += ` AND status = $${idx++}`;
       values.push(status);
     }
 
-    // 🔹 Data query
+    if (search) {
+      whereClause += ` AND name ILIKE $${idx++}`;
+      values.push(`%${search}%`);
+    }
+
     const dataQuery = `
       SELECT id, name, status, owner_id, created_at
       FROM entities
@@ -87,11 +141,11 @@ export const getAllEntities = async (req: Request, res: Response) => {
     const dataValues = [...values, limit, offset];
     const dataResult = await pool.query(dataQuery, dataValues);
 
-    // 🔹 Count query (NO limit / offset)
     const countQuery = `
       SELECT COUNT(*) FROM entities
       ${whereClause}
     `;
+
     const countResult = await pool.query(countQuery, values);
 
     return res.status(200).json({
@@ -109,6 +163,49 @@ export const getAllEntities = async (req: Request, res: Response) => {
 
 
 // GET my entities (User)
+// export const getMyEntities = async (req: Request, res: Response) => {
+//   try {
+//     const user = req.user!;
+
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 10;
+//     const offset = (page - 1) * limit;
+
+//     // 🔹 Data query
+//     const dataQuery = `
+//       SELECT id, name, status, owner_id, created_at
+//       FROM entities
+//       WHERE owner_id = $1
+//       ORDER BY created_at DESC
+//       LIMIT $2 OFFSET $3
+//     `;
+
+//     const dataResult = await pool.query(dataQuery, [
+//       user.userId,
+//       limit,
+//       offset,
+//     ]);
+
+//     // 🔹 Count query
+//     const countQuery = `
+//       SELECT COUNT(*) FROM entities
+//       WHERE owner_id = $1
+//     `;
+
+//     const countResult = await pool.query(countQuery, [user.userId]);
+
+//     return res.status(200).json({
+//       page,
+//       limit,
+//       total: Number(countResult.rows[0].count),
+//       data: dataResult.rows,
+//     });
+//   } catch (error) {
+//     console.error("GET MY ENTITIES ERROR:", error);
+//     return res.status(500).json({ message: "Failed to fetch user entities" });
+//   }
+// };
+
 export const getMyEntities = async (req: Request, res: Response) => {
   try {
     const user = req.user!;
@@ -117,28 +214,38 @@ export const getMyEntities = async (req: Request, res: Response) => {
     const limit = Number(req.query.limit) || 10;
     const offset = (page - 1) * limit;
 
-    // 🔹 Data query
+    const search = req.query.search as string | undefined;
+
+    let whereClause = `WHERE owner_id = $1`;
+    const values: any[] = [user.userId];
+    let idx = 2;
+
+    if (search) {
+      whereClause += ` AND name ILIKE $${idx++}`;
+      values.push(`%${search}%`);
+    }
+
     const dataQuery = `
       SELECT id, name, status, owner_id, created_at
       FROM entities
-      WHERE owner_id = $1
+      ${whereClause}
       ORDER BY created_at DESC
-      LIMIT $2 OFFSET $3
+      LIMIT $${idx++} OFFSET $${idx}
     `;
 
-    const dataResult = await pool.query(dataQuery, [
-      user.userId,
-      limit,
-      offset,
-    ]);
+    values.push(limit, offset);
 
-    // 🔹 Count query
+    const dataResult = await pool.query(dataQuery, values);
+
     const countQuery = `
       SELECT COUNT(*) FROM entities
-      WHERE owner_id = $1
+      ${whereClause}
     `;
 
-    const countResult = await pool.query(countQuery, [user.userId]);
+    const countResult = await pool.query(
+      countQuery,
+      values.slice(0, idx - 2)
+    );
 
     return res.status(200).json({
       page,
@@ -148,7 +255,9 @@ export const getMyEntities = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("GET MY ENTITIES ERROR:", error);
-    return res.status(500).json({ message: "Failed to fetch user entities" });
+    return res.status(500).json({
+      message: "Failed to fetch user entities",
+    });
   }
 };
 
