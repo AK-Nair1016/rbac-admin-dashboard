@@ -12,31 +12,27 @@ import permissionRoutes from "./routes/permission.routes";
 
 const app = express();
 
-/**
- * 🔒 Trust proxy (important for production)
- */
+/* -----------------------------------------------------
+   Core Security Configuration
+----------------------------------------------------- */
+
+// Trust proxy (required if deployed behind reverse proxy)
 app.set("trust proxy", 1);
 
-/**
- * 🔒 Security Headers
- */
+// Security headers
 app.use(helmet());
 
-/**
- * 🔒 Rate Limiter
- */
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// Global rate limiter
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+);
 
-app.use(limiter);
-
-/**
- * 🔒 Strict CORS
- */
+// CORS configuration
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
@@ -44,17 +40,7 @@ app.use(
   })
 );
 
-/**
- * 🔎 Request Logger
- */
-app.use((req, _res, next) => {
-  console.log("➡️ REQUEST:", req.method, req.originalUrl);
-  next();
-});
-
-/**
- * 🔒 JSON Parser with size limit
- */
+// JSON body parser with size limit
 app.use(
   express.json({
     strict: true,
@@ -62,9 +48,10 @@ app.use(
   })
 );
 
-/**
- * ---------------- ROUTES ----------------
- */
+/* -----------------------------------------------------
+   Routes
+----------------------------------------------------- */
+
 app.use("/auth", authRoutes);
 app.use("/protected", protectedRoutes);
 app.use("/entities", entityRoutes);
@@ -72,25 +59,43 @@ app.use("/metrics", metricsRoutes);
 app.use("/users", userRoutes);
 app.use("/permissions", permissionRoutes);
 
+// Health check endpoint
 app.get("/health", (_req, res) => {
-  res.json({ status: "OK" });
+  res.status(200).json({ status: "OK" });
 });
 
-/**
- * 🔒 Central Error Handler
- */
+/* -----------------------------------------------------
+   404 Handler
+----------------------------------------------------- */
+
+app.use((_req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
+/* -----------------------------------------------------
+   Global Error Handler
+----------------------------------------------------- */
+
 app.use((err: any, _req: any, res: any, _next: any) => {
-  console.error("❌ Error caught:", err);
+  const isDev = process.env.NODE_ENV !== "production";
 
   if (err instanceof SyntaxError && "body" in err) {
-    return res.status(400).json({ error: "Invalid JSON body" });
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON body",
+    });
   }
 
-  if (err.status && err.message) {
-    return res.status(err.status).json({ error: err.message });
-  }
+  const statusCode = err.status || 500;
 
-  return res.status(500).json({ error: "Internal Server Error" });
+  return res.status(statusCode).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+    ...(isDev && { stack: err.stack }), // Only show stack in dev
+  });
 });
 
 export default app;

@@ -1,111 +1,155 @@
-/* ---------- Container ---------- */
+/* =========================
+   CONTAINER
+========================= */
+
 .container {
-  padding: 24px;
   background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 28px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
 }
 
-/* ---------- Title ---------- */
+/* =========================
+   TITLE
+========================= */
+
 .title {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   font-size: 22px;
   font-weight: 600;
-  color: #111827;
+  color: #0f172a;
 }
+
+/* =========================
+   SEARCH
+========================= */
+
 .searchContainer {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: flex-end;
 }
 
 .searchInput {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  width: 250px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  width: 260px;
   font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .searchBtn {
-  padding: 8px 14px;
+  padding: 10px 18px;
   border: none;
-  border-radius: 6px;
-  background-color: #4a90e2;
-  color: white;
-  cursor: pointer;
+  border-radius: 10px;
+  background-color: #2563eb;
+  color: #ffffff;
   font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .searchBtn:hover {
-  background-color: #357bd8;
+  background-color: #1d4ed8;
 }
 
+/* =========================
+   TABLE
+========================= */
 
-/* ---------- Table Wrapper ---------- */
 .table {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   overflow: hidden;
-  background-color: #ffffff;
 }
 
-/* ---------- Table Header ---------- */
+/* =========================
+   HEADER
+========================= */
+
 .header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.5fr 1fr; /* Name | Status | Assigned User | Actions */
-  padding: 12px 16px;
-  background-color: #144287;
+  grid-template-columns: 2fr 1fr 1.5fr 1fr;
+  padding: 14px 20px;
+  background-color: #f8fafc;
   font-weight: 600;
-  font-size: 14px;
-  color: #ffffff;
+  font-size: 13px;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/* ---------- Table Row ---------- */
+/* =========================
+   ROW
+========================= */
+
 .row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.5fr 1fr; /* must match header */
-  padding: 12px 16px;
-  border-top: 1px solid #e0e0e0;
+  grid-template-columns: 2fr 1fr 1.5fr 1fr;
+  padding: 16px 20px;
+  border-top: 1px solid #e5e7eb;
   align-items: center;
   background-color: #ffffff;
-  color: #111827;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .row:hover {
-  background-color: #488aa6;
-  color: #ffffff;
+  background-color: #f1f5f9;
 }
 
-/* ---------- Status Badge ---------- */
+/* =========================
+   STATUS BADGE
+========================= */
+
 .status {
-  display: inline-block;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;   /* smaller */
+  font-size: 11px;     /* tighter */
+  font-weight: 600;
+  border-radius: 999px;
+  height: 24px;        /* fixed height */
   width: fit-content;
 }
 
 .active {
-  background-color: #20a548;
-  color: #ffffff;
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .inactive {
-  background-color: #d93025;
-  color: #ffffff;
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
-/* ---------- Assigned User Dropdown ---------- */
+/* =========================
+   DROPDOWN
+========================= */
+
 .assignDropdown {
-  padding: 4px 6px;
-  font-size: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   background-color: #ffffff;
-  color: #111827;
   cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.assignDropdown:focus {
+  outline: none;
+  border-color: #2563eb;
 }
 
 .assignDropdown:disabled {
@@ -113,78 +157,80 @@
   cursor: not-allowed;
 }
 
-/* ---------- Actions Column ---------- */
-.actionsCell {
-  display: flex;
-  align-items: center;
-}
+/* =========================
+   ACTION BUTTON
+========================= */
 
-/* ---------- Inline Status Toggle ---------- */
 .statusToggleBtn {
-  all: unset;
-  cursor: pointer;
+  padding: 6px 12px;
   font-size: 13px;
-  color: #1a73e8;
-  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .statusToggleBtn:hover {
-  text-decoration: underline;
+  background-color: #e2e8f0;
 }
 
 .statusToggleBtn:disabled {
-  color: #9ca3af;
+  opacity: 0.5;
   cursor: not-allowed;
-  text-decoration: none;
 }
 
-/* ---------- Info & Error ---------- */
+/* =========================
+   INFO / ERROR
+========================= */
+
 .info {
-  padding: 16px;
-  color: #374151;
+  padding: 20px;
+  color: #475569;
 }
 
 .error {
-  padding: 16px;
-  color: #d93025;
+  padding: 20px;
+  color: #dc2626;
 }
 
-/* ---------- Pagination ---------- */
+/* =========================
+   PAGINATION
+========================= */
+
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  margin-top: 16px;
-  font-size: 14px;
+  gap: 8px;
+  margin-top: 24px;
 }
 
-/* HARD RESET for pagination buttons */
 .pageBtn,
 .navBtn {
-  all: unset;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  font-size: 13px;
   cursor: pointer;
-  font-size: 14px;
-  color: #1a73e8;
-  padding: 2px 4px;
+  transition: all 0.2s ease;
 }
 
 .pageBtn:hover,
 .navBtn:hover {
-  text-decoration: underline;
+  background-color: #f1f5f9;
 }
 
-/* Active page */
 .activePage {
-  font-weight: 600;
-  color: #111827;
-  text-decoration: underline;
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
   cursor: default;
 }
 
-/* Disabled navigation */
 .navBtn:disabled {
-  color: #9ca3af;
+  opacity: 0.5;
   cursor: not-allowed;
-  text-decoration: none;
 }

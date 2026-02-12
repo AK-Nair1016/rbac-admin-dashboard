@@ -4,7 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import EntitiesList from "./pages/entities/EntitiesList";
 import CreateEntity from "./pages/entities/CreateEntity";
 import EditEntity from "./pages/entities/EditEntity";
-import UsersPermit from "./pages/usersPermit"; // ✅ NEW
+import UsersPermit from "./pages/usersPermit";
 import DashboardLayout from "./Layouts/DashboardLayout";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
@@ -32,6 +32,7 @@ function App() {
             <Route path="/entities" element={<EntitiesList />} />
             <Route path="/entities/new" element={<CreateEntity />} />
             <Route path="/entities/:id/edit" element={<EditEntity />} />
+            
 
             {/* ✅ User Permissions */}
             <Route

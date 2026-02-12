@@ -1,102 +1,153 @@
+/* =========================
+   SIDEBAR ROOT
+========================= */
+
 .sidebar {
-  width: 240px;
-  background-color: #0d1c3f;
+  width: 260px;
+  background-color: #0f172a;
   color: #cbd5e1;
   display: flex;
   flex-direction: column;
-  padding: 24px 16px;
+  padding: 28px 20px;
+  transition: width 0.25s ease;
 }
 
-/* ===== Header ===== */
+/* =========================
+   HEADER
+========================= */
 
 .sidebarHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
-  padding: 0 8px;
+  margin-bottom: 42px;
 }
 
 .brand {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #ffffff;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
 }
 
-/* ===== Navigation ===== */
+/* =========================
+   NAVIGATION
+========================= */
 
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 14px;
-  border-radius: 8px;
+  gap: 14px;
+  padding: 13px 16px;
+  border-radius: 12px;
   text-decoration: none;
   color: #cbd5e1;
   font-size: 14px;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: all 0.2s ease;
 }
 
+/* Icon inside nav */
+.navItem svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Hover */
 .navItem:hover {
-  background-color: #1e293b;
-}
-
-.active {
   background-color: #1e293b;
   color: #ffffff;
 }
 
-/* ➕ Sub item (Create Entity) */
-/* ➕ Sub item (Create Entity) */
-.subItem {
-  margin-left: 28px;
-  font-size: 13px;
-  opacity: 0.9;
+/* Active state */
+.active {
+  background-color: #1e293b;
+  color: #ffffff;
+  font-weight: 500;
 }
 
+/* =========================
+   SUB ITEM
+========================= */
 
-/* ===== Logout ===== */
+.subItem {
+  margin-left: 36px;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* =========================
+   LOGOUT
+========================= */
 
 .logout {
   margin-top: auto;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 14px;
+  gap: 14px;
+  padding: 13px 16px;
   background: none;
   border: none;
   color: #f87171;
   font-size: 14px;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.logout svg {
+  width: 20px;
+  height: 20px;
 }
 
 .logout:hover {
   background-color: #1e293b;
 }
 
-/* ===== Collapsed ===== */
+/* =========================
+   COLLAPSED MODE
+========================= */
 
 .collapsed {
-  width: 72px;
+  width: 84px;
+  padding: 28px 12px;
 }
 
+/* Center items */
 .collapsed .navItem {
   justify-content: center;
+  padding: 14px;
+}
+
+/* Make icons slightly larger when collapsed */
+.collapsed .navItem svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Remove text spacing visually */
+.collapsed .navItem span {
+  display: none;
 }
 
 .collapsed .logout {
   justify-content: center;
 }
 
-/* ===== Collapse Button ===== */
+.collapsed .logout svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* =========================
+   COLLAPSE BUTTON
+========================= */
 
 .collapseBtn {
   background: none;
@@ -104,6 +155,8 @@
   color: #cbd5e1;
   cursor: pointer;
   padding: 6px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
 }
 
 .collapseBtn:hover {

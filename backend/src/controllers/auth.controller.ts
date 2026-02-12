@@ -9,6 +9,7 @@ export const login = async (req: Request, res: Response) => {
 
     if (!email || !password) {
       return res.status(400).json({
+        success: false,
         message: "Email and password are required",
       });
     }
@@ -17,14 +18,15 @@ export const login = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(401).json({
+        success: false,
         message: "Invalid credentials",
       });
     }
 
     if (!user.employee_id) {
-      // Safety check during EID rollout
       return res.status(500).json({
-        message: "User is not properly configured",
+        success: false,
+        message: "User configuration error",
       });
     }
 
@@ -35,30 +37,31 @@ export const login = async (req: Request, res: Response) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({
+        success: false,
         message: "Invalid credentials",
       });
     }
 
-    // 🔐 JWT payload (internal + human-facing identifiers)
     const token = generateToken({
-      userId: user.id,              // UUID (internal)
-      employeeId: user.employee_id, // EID (frontend-safe)
+      userId: user.id,
+      employeeId: user.employee_id,
       role: user.role,
     });
 
     return res.status(200).json({
+      success: true,
       message: "Login successful",
       token,
       user: {
-        id: user.id,                  // optional for frontend
-        employeeId: user.employee_id, // primary display/search ID
+        id: user.id,
+        employeeId: user.employee_id,
         role: user.role,
         email: user.email,
       },
     });
-  } catch (error) {
-    console.error("LOGIN ERROR:", error);
+  } catch (_error) {
     return res.status(500).json({
+      success: false,
       message: "Internal server error",
     });
   }
