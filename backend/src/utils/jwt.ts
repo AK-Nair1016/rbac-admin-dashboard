@@ -1,27 +1,40 @@
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
+/* -----------------------------------------------------
+   Environment Validation
+----------------------------------------------------- */
 
-/**
- * JWT payload structure used across the app
- * - userId: internal UUID (never exposed for business logic)
- * - employeeId: human-facing ID (EID)
- * - role: RBAC role
- */
-export interface JwtPayload {
-  userId: string;
-  employeeId: string;
-  role: string;
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
 }
 
-// generate JWT (called by login controller)
+/* -----------------------------------------------------
+   JWT Payload Interface
+----------------------------------------------------- */
+
+export interface JwtPayload {
+  userId: string;      // internal UUID
+  employeeId: string;  // human-facing ID
+  role: string;        // RBAC role
+}
+
+/* -----------------------------------------------------
+   Generate JWT
+----------------------------------------------------- */
+
 export const generateToken = (payload: JwtPayload): string => {
   return jwt.sign(payload, JWT_SECRET, {
+    algorithm: "HS256",
     expiresIn: "2h",
   });
 };
 
-// verify JWT (called by auth middleware)
+/* -----------------------------------------------------
+   Verify JWT
+----------------------------------------------------- */
+
 export const verifyToken = (token: string): JwtPayload => {
   const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
   return decoded;
