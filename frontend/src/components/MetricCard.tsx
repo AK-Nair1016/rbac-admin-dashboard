@@ -1,4 +1,4 @@
-import styles from "./MetricCard.module.css";
+import StatCard from "./common/StatCard";
 
 interface MetricCardProps {
   label: string;
@@ -7,13 +7,7 @@ interface MetricCardProps {
 }
 
 const MetricCard = ({ label, value, hint }: MetricCardProps) => {
-  return (
-    <div className={styles.card}>
-      <div className={styles.label}>{label}</div>
-      <div className={styles.value}>{value}</div>
-      {hint && <div className={styles.hint}>{hint}</div>}
-    </div>
-  );
+  return <StatCard label={label} value={value} hint={hint} />;
 };
 
 export default MetricCard;

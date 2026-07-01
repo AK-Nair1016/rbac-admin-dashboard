@@ -1,19 +1,15 @@
-
-
 import { useEffect, useState } from "react";
-import styles from "./UsersPermit.module.css";
-import { upsertPermission, getAllPermissions } from "../api/permissions";
+import { getAllPermissions, upsertPermission } from "../api/permissions";
 import type { PermissionRow, PermissionType } from "../api/permissions";
-
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
+import styles from "./UserPermissionsPage.module.css";
 
 interface Row extends PermissionRow {
   rowKey: string;
 }
 
-const UsersPermit = () => {
+const UserPermissionsPage = () => {
   const { refreshPermissions } = useAuth();
-
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,20 +20,15 @@ const UsersPermit = () => {
         setLoading(true);
         setError(null);
 
-        console.log("🔍 Fetching ALL permissions (admin view)");
-        const data = await getAllPermissions(); // ✅ typed: PermissionRow[]
-
-        console.log("✅ Permissions payload:", data);
-
-        const mapped: Row[] = data.map((r) => ({
-          ...r,
-          rowKey: `${r.userId}_${r.entityId}`,
+        const data = await getAllPermissions();
+        const mappedRows: Row[] = data.map((row) => ({
+          ...row,
+          rowKey: `${row.userId}_${row.entityId}`,
         }));
 
-        console.table(mapped);
-        setRows(mapped);
-      } catch (err) {
-        console.error("❌ Failed to fetch permissions", err);
+        setRows(mappedRows);
+      } catch (fetchError) {
+        console.error("Failed to fetch permissions", fetchError);
         setError("Failed to load permissions");
         setRows([]);
       } finally {
@@ -49,19 +40,17 @@ const UsersPermit = () => {
   }, []);
 
   const setPermission = async (row: Row, permission: PermissionType) => {
-    console.group("✏️ Updating permission");
-    console.log("userId:", row.userId);
-    console.log("entityId:", row.entityId);
-    console.log("permission:", permission);
-    console.groupEnd();
-
-    setRows((prev) =>
-      prev.map((r) =>
-        r.rowKey === row.rowKey ? { ...r, permission } : r
+    setRows((previousRows) =>
+      previousRows.map((currentRow) =>
+        currentRow.rowKey === row.rowKey
+          ? { ...currentRow, permission }
+          : currentRow
       )
     );
 
-    if (permission === "NONE") return;
+    if (permission === "NONE") {
+      return;
+    }
 
     try {
       await upsertPermission({
@@ -70,15 +59,14 @@ const UsersPermit = () => {
         permission,
       });
 
-      console.log("✅ Permission saved");
       await refreshPermissions();
-    } catch (err) {
-      console.error("❌ Failed to save permission", err);
+    } catch (saveError) {
+      console.error("Failed to save permission", saveError);
       alert("Failed to save permission");
     }
   };
 
-  if (loading) return <p>Loading permissions…</p>;
+  if (loading) return <p>Loading permissions...</p>;
   if (error) return <p>{error}</p>;
 
   return (
@@ -136,8 +124,7 @@ const UsersPermit = () => {
                     type="checkbox"
                     checked={row.permission === "READ_WRITE"}
                     disabled={
-                      row.permission === "READ" ||
-                      row.permission === "WRITE"
+                      row.permission === "READ" || row.permission === "WRITE"
                     }
                     onChange={() =>
                       setPermission(
@@ -159,4 +146,4 @@ const UsersPermit = () => {
   );
 };
 
-export default UsersPermit;
+export default UserPermissionsPage;

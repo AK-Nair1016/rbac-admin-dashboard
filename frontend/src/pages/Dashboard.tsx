@@ -1,27 +1,31 @@
-import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../auth/AuthContext";
-import { getMetrics } from "../api/metrics";
-import MetricCard from "../components/MetricCard";
-import styles from "./Dashboard.module.css";
-
+import { useEffect, useState } from "react";
 import {
-  Chart as ChartJS,
   ArcElement,
-  Tooltip,
+  Chart as ChartJS,
   Legend,
+  Tooltip,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
+import { getMetrics } from "../api/metrics";
+import type { MetricsResponse } from "../api/metrics";
+import { useAuth } from "../auth/useAuth";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  PageHeader,
+  SectionCard,
+  StatCard,
+} from "../components/common";
+import styles from "./Dashboard.module.css";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Dashboard = () => {
-  const authContext = useContext(AuthContext);
-  const user = authContext?.user;
-
-  const [metrics, setMetrics] = useState<any>(null);
-  const [chartRawData, setChartRawData] = useState<
-    { status: string; count: number }[] | null
-  >(null);
+  const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState<MetricsResponse | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -29,12 +33,7 @@ const Dashboard = () => {
     const fetchMetrics = async () => {
       try {
         const data = await getMetrics();
-
-        setMetrics(data.metrics);
-
-        if (data.role === "admin") {
-          setChartRawData(data.charts.entitiesByStatus);
-        }
+        setDashboardData(data);
       } catch {
         setError("Failed to load dashboard metrics");
       } finally {
@@ -46,8 +45,15 @@ const Dashboard = () => {
   }, []);
 
   if (!user) return null;
-  if (loading) return <div>Loading dashboard...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <LoadingState message="Loading dashboard..." />;
+  if (error || !dashboardData) {
+    return (
+      <ErrorState
+        title="Dashboard unavailable"
+        message={error || "No dashboard data"}
+      />
+    );
+  }
 
   const { role, employeeId } = user;
 
@@ -55,20 +61,18 @@ const Dashboard = () => {
     status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
   const entityStatusChart =
-    chartRawData && chartRawData.length > 0
+    dashboardData.role === "admin" &&
+    dashboardData.charts.entitiesByStatus.length > 0
       ? {
-          labels: chartRawData.map((item) =>
+          labels: dashboardData.charts.entitiesByStatus.map((item) =>
             normalizeStatus(item.status)
           ),
           datasets: [
             {
-              data: chartRawData.map((item) => item.count),
-              backgroundColor: [
-                "#2563eb",
-                "#16a34a",
-                "#f59e0b",
-                "#dc2626",
-              ],
+              data: dashboardData.charts.entitiesByStatus.map(
+                (item) => item.count
+              ),
+              backgroundColor: ["#2563eb", "#16a34a", "#f59e0b", "#dc2626"],
               borderWidth: 1,
             },
           ],
@@ -77,70 +81,72 @@ const Dashboard = () => {
 
   return (
     <div className={styles.dashboard}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.title}>Dashboard</h1>
-          <p className={styles.subtitle}>
-            Welcome back. Here’s a snapshot of your system.
-          </p>
-        </div>
+      <PageHeader
+        title="Dashboard"
+        description="Welcome back. Here is a snapshot of your access workspace."
+        meta={
+          <>
+            <div className={styles.identity}>
+              <span className={styles.label}>Employee ID</span>
+              <span className={styles.value}>{employeeId}</span>
+            </div>
+            <div className={styles.identity}>
+              <span className={styles.label}>Role</span>
+              <span className={styles.value}>{role}</span>
+            </div>
+          </>
+        }
+      />
 
-        <div className={styles.headerRight}>
-          <div className={styles.identity}>
-            <span className={styles.label}>Employee ID</span>
-            <span className={styles.value}>{employeeId}</span>
-          </div>
-          <div className={styles.identity}>
-            <span className={styles.label}>Role</span>
-            <span className={styles.value}>{role}</span>
-          </div>
-        </div>
-      </header>
-
-      {/* Metrics */}
-      <section className={styles.metricsSection}>
-        <h2 className={styles.sectionTitle}>Overview</h2>
-
+      <SectionCard title="Overview">
         <div className={styles.metrics}>
-          {role === "admin" && metrics && (
+          {role === "admin" && dashboardData.role === "admin" && (
             <>
-              <MetricCard label="Total Users" value={metrics.totalUsers} />
-              <MetricCard label="Total Entities" value={metrics.totalEntities} />
-              <MetricCard label="System Roles" value={metrics.systemRoles} />
+              <StatCard
+                label="Total Users"
+                value={dashboardData.metrics.totalUsers}
+              />
+              <StatCard
+                label="Total Entities"
+                value={dashboardData.metrics.totalEntities}
+              />
+              <StatCard
+                label="System Roles"
+                value={dashboardData.metrics.systemRoles}
+              />
             </>
           )}
 
-          {role === "manager" && metrics && (
+          {role === "manager" && dashboardData.role === "manager" && (
             <>
-              <MetricCard
+              <StatCard
                 label="Assigned Entities"
-                value={metrics.assignedEntities}
+                value={dashboardData.metrics.assignedEntities}
               />
-              <MetricCard
+              <StatCard
                 label="Active Entities"
-                value={metrics.activeEntities}
+                value={dashboardData.metrics.activeEntities}
               />
             </>
           )}
 
-          {role === "user" && metrics && (
+          {role === "user" && dashboardData.role === "user" && (
             <>
-              <MetricCard label="My Entities" value={metrics.myEntities} />
-              <MetricCard
+              <StatCard
+                label="My Entities"
+                value={dashboardData.metrics.myEntities}
+              />
+              <StatCard
                 label="Active Entities"
-                value={metrics.activeEntities}
+                value={dashboardData.metrics.activeEntities}
               />
             </>
           )}
         </div>
-      </section>
+      </SectionCard>
 
-      {/* Analytics (Admin only) */}
-      {role === "admin" && chartRawData && (
-        <section className={styles.chartsSection}>
-          <h2 className={styles.sectionTitle}>Analytics</h2>
-
+      {role === "admin" && dashboardData.role === "admin" && (
+        <SectionCard title="Analytics">
           {entityStatusChart ? (
             <div className={styles.chartsGrid}>
               <div className={styles.chartCard}>
@@ -165,11 +171,9 @@ const Dashboard = () => {
               </div>
             </div>
           ) : (
-            <p className={styles.emptyState}>
-              No entity data available to display analytics.
-            </p>
+            <EmptyState message="No entity data available to display analytics." />
           )}
-        </section>
+        </SectionCard>
       )}
     </div>
   );

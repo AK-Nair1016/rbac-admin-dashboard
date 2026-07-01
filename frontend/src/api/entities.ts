@@ -8,24 +8,11 @@ import axios from "./axios";
 export interface Entity {
   id: string;
   name: string;
-  status: "ACTIVE"| "INACTIVE";
+  status: "ACTIVE" | "INACTIVE";
   description?: string;
   ownerId: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export interface EntityQueryParams {
-  page?: number;
-  limit?: number;
-  search?: string;
 }
 
 /* =========================

@@ -158,8 +158,29 @@
 }
 
 /* =========================
-   ACTION BUTTON
+   ACTIONS
 ========================= */
+
+.actionsCell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.editBtn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid #dbeafe;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editBtn:hover {
+  background-color: #dbeafe;
+}
 
 .statusToggleBtn {
   padding: 6px 12px;

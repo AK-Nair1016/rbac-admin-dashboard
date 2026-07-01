@@ -36,7 +36,7 @@
   display: grid;
   grid-template-columns: 2fr 2fr 3fr;
   padding: 16px 24px;
-  background: #0f172a; /* dark slate */
+  background: #0f172a;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;

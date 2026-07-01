@@ -1,7 +1,6 @@
-import { useContext } from "react";
 import { Navigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { AuthContext } from "./AuthContext";
+import { useAuth } from "./useAuth";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -9,9 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const authContext = useContext(AuthContext);
-
-  if (!authContext) return null;
+  const authContext = useAuth();
 
   // 🔑 WAIT until auth is restored
   if (authContext.isLoading) {
