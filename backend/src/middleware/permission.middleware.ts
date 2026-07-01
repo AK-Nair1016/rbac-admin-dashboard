@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import pool from "../config/db";
+import { logger } from "../utils/logger";
+import { sendError } from "../utils/apiResponse";
 
 export const enforceEntityPermission =
   (required: "READ" | "WRITE") =>
@@ -28,7 +30,19 @@ export const enforceEntityPermission =
       );
 
       if (result.rows.length === 0) {
-        return res.status(403).json({
+        logger.warn(
+          {
+            event: "authorization_entity_permission_missing",
+            userId: user.userId,
+            entityId,
+            requiredPermission: required,
+            path: req.originalUrl,
+          },
+          "User has no permission for entity"
+        );
+
+        return sendError(res, {
+          statusCode: 403,
           message: "No permission for this entity",
         });
       }
@@ -41,15 +55,37 @@ export const enforceEntityPermission =
         (permission === "WRITE" && required === "WRITE");
 
       if (!allowed) {
-        return res.status(403).json({
+        logger.warn(
+          {
+            event: "authorization_entity_permission_denied",
+            userId: user.userId,
+            entityId,
+            requiredPermission: required,
+            actualPermission: permission,
+            path: req.originalUrl,
+          },
+          "User has insufficient permission for entity"
+        );
+
+        return sendError(res, {
+          statusCode: 403,
           message: "Insufficient permission",
         });
       }
 
       return next();
     } catch (error) {
-      console.error("PERMISSION MIDDLEWARE ERROR:", error);
-      return res.status(500).json({
+      logger.error(
+        {
+          event: "authorization_entity_permission_check_failed",
+          path: req.originalUrl,
+          error,
+        },
+        "Entity permission enforcement failed"
+      );
+
+      return sendError(res, {
+        statusCode: 500,
         message: "Permission enforcement failed",
       });
     }

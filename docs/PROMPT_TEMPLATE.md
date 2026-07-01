@@ -6,8 +6,8 @@ Use this prompt at the beginning of every Codex session.
 
 Read the following in order:
 
-1.  AGENT.md
-2.  PROJECT_RULES.md
+1.  docs/AGENT.md
+2.  docs/PROJECT_RULES.md
 3.  docs/CONTEXT_WINDOW.md
 4.  Relevant documentation under /docs based on the requested feature.
 

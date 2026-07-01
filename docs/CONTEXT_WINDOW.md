@@ -35,6 +35,11 @@ Priority:
 - RBAC role authorization fixed to enforce allowed roles
 - Permissions refactored into controller, validator, service, and database query layers
 - Entities refactored into controller, validator, service, and database query layers
+- Users assignable lookup refactored into controller, validator, service, and database query layers
+- Dashboard / metrics refactored into controller, service, and database query layers
+- Reusable API response helpers introduced and applied incrementally to refactored backend slices
+- Structured logging introduced with Pino across auth, authorization, errors, and key business operations
+- Startup documentation was consolidated into `docs/`, and the duplicate startup context window was removed
 
 ## In Progress
 
@@ -42,10 +47,7 @@ Priority:
 
 ## Pending
 
-- Continue controller/service cleanup for users and metrics
 - Validation middleware for remaining routes
-- Standard API response helper without breaking existing frontend contracts
-- Structured logging
 - Frontend refactor
 - API Catalog
 - Access Requests
@@ -59,30 +61,56 @@ Priority:
 - backend/src/app.ts
 - backend/src/controllers/auth.controller.ts
 - backend/src/controllers/entity.controller.ts
+- backend/src/controllers/metrics.controller.ts
 - backend/src/controllers/permission.controller.ts
+- backend/src/controllers/users.controller.ts
+- backend/src/middleware/auth.middleware.ts
+- backend/src/middleware/ownership.middleware.ts
+- backend/src/middleware/permission.middleware.ts
+- backend/src/db/dashboard.queries.ts
+- backend/src/db/user.queries.ts
 - backend/src/middleware/rbac.middleware.ts
+- backend/src/middleware/error.middleware.ts
+- backend/package.json
+- backend/package-lock.json
 - backend/src/routes/entity.routes.ts
 - backend/src/routes/permission.routes.ts
 - backend/src/routes/auth.routes.ts
-- backend/src/utils/userQueries.ts
+- backend/src/routes/users.routes.ts
+- backend/src/services/dashboard.service.ts
+- backend/src/services/auth.service.ts
+- backend/src/services/entity.service.ts
+- backend/src/services/permission.service.ts
+- backend/src/utils/apiResponse.ts
 - docs/15_IMPLEMENTATION_CHECKLIST.md
 - docs/CONTEXT_WINDOW.md
-- docs/startup file/CONTEXT_WINDOW.md
+- docs/AGENT.md
+- docs/PROJECT_RULES.md
+- docs/Backend_Refactoring_Roadmap.md
+- docs/Frontend_Refactoring_Roadmap.md
+- docs/API_Access_Governance_Blueprint.md
+- docs/PROMPT_TEMPLATE.md
 
 ## Files Added
 
 - backend/src/db/user.queries.ts
 - backend/src/db/permission.queries.ts
 - backend/src/db/entity.queries.ts
+- backend/src/db/dashboard.queries.ts
 - backend/src/errors/AppError.ts
 - backend/src/middleware/error.middleware.ts
 - backend/src/services/auth.service.ts
+- backend/src/services/dashboard.service.ts
 - backend/src/services/permission.service.ts
 - backend/src/services/entity.service.ts
+- backend/src/services/user.service.ts
 - backend/src/utils/asyncHandler.ts
 - backend/src/validators/auth.validator.ts
 - backend/src/validators/permission.validator.ts
 - backend/src/validators/entity.validator.ts
+- backend/src/validators/user.validator.ts
+- backend/src/utils/apiResponse.ts
+- backend/src/utils/logger.ts
 
 ## Database Changes
 
@@ -94,7 +122,11 @@ No endpoint or response contract changes. `/auth/login` still returns
 `success`, `message`, `token`, and `user` at the top level for frontend
 compatibility. Existing `/permissions` endpoints and success response
 payloads are preserved. Existing `/entities` endpoints and success response
-payloads are preserved.
+payloads are preserved. Existing `/users/assignable` continues to return
+`{ data: [...] }` for frontend compatibility. Existing `/metrics` continues
+to return the current role-based payloads consumed by the dashboard UI.
+Response construction is now centralized without changing those payloads.
+Structured logging was added without changing endpoint contracts.
 
 ## Frontend Changes
 
@@ -116,23 +148,43 @@ None.
 - Entity business flow moved to `entity.service.ts`.
 - Entity SQL moved to `db/entity.queries.ts`.
 - Entity controller now delegates to the service and formats HTTP responses.
+- Assignable user lookup remains at `/users/assignable` and now uses `user.service.ts`.
+- Assignable user SQL moved out of `users.controller.ts` into `db/user.queries.ts`.
+- Users route now applies route-level validation middleware before the controller.
+- Users controller now delegates to the service layer and relies on shared async error handling.
+- Metrics role-based business logic moved into `dashboard.service.ts`.
+- Metrics SQL moved from `utils/userQueries.ts` into `db/dashboard.queries.ts`.
+- Metrics controller now delegates to the service layer while preserving existing admin, manager, and user response payloads.
+- `utils/apiResponse.ts` now centralizes reusable success and error response formatting.
+- Auth, entities, permissions, users, metrics, and the global error middleware now use the shared response helper incrementally.
+- `pino` was added as a backend dependency and configured in `utils/logger.ts`.
+- Authentication events are now logged for login success, invalid credentials, and invalid JWT access attempts.
+- Authorization failures are now logged in RBAC, ownership, and entity-permission middleware.
+- Unexpected and application errors are now logged through the global error middleware.
+- Important business operations are now logged for entity create/update/assignment and permission changes.
+- Repository startup/reference markdown files were moved into `docs/` so all project documentation now lives in one place.
 
 ## Known Issues
 
 - Existing package lock changes were already present in the working tree and were not part of this refactor.
 - No automated test script exists in `backend/package.json`.
-- Users, metrics, ownership, and entity-permission middleware still contain SQL and validation logic.
+- Ownership and entity-permission middleware still contain SQL and validation logic.
+- No lint script is defined in `backend/package.json`, so lint verification could not be run.
 
 ## Decisions
 
 - Preserve the existing `/auth/login` response shape instead of adopting the documented nested `data` response during this refactor, because the current frontend reads `res.data.token`.
-- Keep metrics queries in `utils/userQueries.ts` until a later query-layer cleanup milestone.
 - Preserve existing `/permissions` response payloads during refactor to avoid frontend contract drift.
 - Preserve existing `/entities` response payloads during refactor to avoid frontend contract drift.
+- Preserve the existing `/users/assignable` response shape of `{ data: [...] }` to avoid breaking the entity assignment UI.
+- Keep the Users validator lightweight because the current `/users/assignable` endpoint accepts no request body or query contract beyond authenticated access control.
+- Preserve the existing `/metrics` response payloads by role instead of adopting a new dashboard response wrapper during this milestone.
+- Build the response helper to support both standardized metadata (`success`, `message`, `errors`) and existing top-level payload keys so frontend contracts remain stable during the refactor.
+- Keep structured logging intentionally lightweight: one shared Pino logger and targeted logs for auth, authz, errors, and key write operations.
 
 ## Next Recommended Task
 
-Refactor the metrics backend slice into service and db query layers while preserving existing `/metrics` endpoint and response payloads.
+Complete the remaining Phase 0 backend cleanup by extracting SQL out of `ownership.middleware.ts` and `permission.middleware.ts`, then add a real backend test and lint workflow.
 
 ## Session Summary Template
 
@@ -150,6 +202,12 @@ Author: Codex
 - Permission service, DB query, and validator layers introduced.
 - Entities controller made thin.
 - Entity service, DB query, and validator layers introduced.
+- Users controller made thin for the assignable users endpoint.
+- User service, DB query, and validator layers introduced for `/users/assignable`.
+- Metrics controller made thin.
+- Dashboard service and DB query layers introduced for `/metrics`.
+- Shared API response helpers introduced and applied without changing current frontend payload shapes.
+- Structured logging introduced with Pino across auth, authorization, errors, and key business operations.
 - TypeScript compiler check passed with `npx tsc --noEmit`.
 
 ## Problems:
@@ -162,4 +220,4 @@ Author: Codex
 
 ## Next Step:
 
-Refactor metrics backend slice next.
+Extract remaining middleware SQL and add automated backend quality checks next.

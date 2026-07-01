@@ -10,6 +10,7 @@ import {
   upsertEntityAssignment,
   userExists,
 } from "../db/entity.queries";
+import { logger } from "../utils/logger";
 
 type ListQuery = {
   page?: unknown;
@@ -56,7 +57,23 @@ export const createEntityForOwner = async ({
   status,
   ownerId,
 }: CreateEntityInput) => {
-  return createEntityRecord(name.trim(), normalizeStatus(status), ownerId);
+  const entity = await createEntityRecord(
+    name.trim(),
+    normalizeStatus(status),
+    ownerId
+  );
+
+  logger.info(
+    {
+      event: "entity_created",
+      entityId: entity.id,
+      ownerId,
+      status: entity.status,
+    },
+    "Entity created"
+  );
+
+  return entity;
 };
 
 export const listEntities = async (query: ListQuery) => {
@@ -107,14 +124,40 @@ export const updateEntityDetails = async ({
   name,
   status,
 }: UpdateEntityInput) => {
-  return updateEntityRecord(entityId, { name, status });
+  const entity = await updateEntityRecord(entityId, { name, status });
+
+  if (entity) {
+    logger.info(
+      {
+        event: "entity_updated",
+        entityId,
+        status: entity.status,
+      },
+      "Entity updated"
+    );
+  }
+
+  return entity;
 };
 
 export const updateEntityStatus = async (
   entityId: string,
   status: EntityStatus
 ) => {
-  return updateEntityStatusRecord(entityId, status);
+  const entity = await updateEntityStatusRecord(entityId, status);
+
+  if (entity) {
+    logger.info(
+      {
+        event: "entity_status_updated",
+        entityId,
+        status,
+      },
+      "Entity status updated"
+    );
+  }
+
+  return entity;
 };
 
 export const assignUserToEntityRecord = async ({
@@ -133,7 +176,18 @@ export const assignUserToEntityRecord = async ({
     return { error: "User not found" as const };
   }
 
+  const assignment = await upsertEntityAssignment(entityId, userId);
+
+  logger.info(
+    {
+      event: "entity_assignment_upserted",
+      entityId,
+      userId,
+    },
+    "Entity assignment saved"
+  );
+
   return {
-    assignment: await upsertEntityAssignment(entityId, userId),
+    assignment,
   };
 };

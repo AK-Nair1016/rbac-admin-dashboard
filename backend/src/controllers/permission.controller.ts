@@ -4,6 +4,7 @@ import {
   getPermissionsForUser,
   savePermission,
 } from "../services/permission.service";
+import { sendSuccess } from "../utils/apiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 
 export const getMyPermissions = asyncHandler(
@@ -11,7 +12,9 @@ export const getMyPermissions = asyncHandler(
     const userId = req.user!.userId;
     const permissions = await getPermissionsForUser(userId);
 
-    return res.status(200).json(permissions);
+    return sendSuccess(res, {
+      payload: permissions,
+    });
   }
 );
 
@@ -19,7 +22,9 @@ export const getAllPermissions = asyncHandler(
   async (_req: Request, res: Response) => {
     const permissions = await getPermissions();
 
-    return res.status(200).json(permissions);
+    return sendSuccess(res, {
+      payload: permissions,
+    });
   }
 );
 
@@ -32,7 +37,7 @@ export const upsertPermission = asyncHandler(
       permission,
     });
 
-    return res.status(200).json({
+    return sendSuccess(res, {
       message: "Permission saved",
       data: savedPermission,
     });

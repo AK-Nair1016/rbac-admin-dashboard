@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { logger } from "../utils/logger";
+import { sendError } from "../utils/apiResponse";
 
 export const authorizeRoles = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -6,16 +8,57 @@ export const authorizeRoles = (...allowedRoles: string[]) => {
       const user = req.user;
 
       if (!user || !user.role) {
-        return res.status(401).json({ message: "Unauthorized" });
+        logger.warn(
+          {
+            event: "authorization_missing_user",
+            method: req.method,
+            path: req.originalUrl,
+            allowedRoles,
+          },
+          "Authorization attempted without authenticated user"
+        );
+
+        return sendError(res, {
+          statusCode: 401,
+          message: "Unauthorized",
+        });
       }
 
       if (!allowedRoles.includes(user.role)) {
-        return res.status(403).json({ message: "Access Denied" });
+        logger.warn(
+          {
+            event: "authorization_role_denied",
+            userId: user.userId,
+            role: user.role,
+            allowedRoles,
+            method: req.method,
+            path: req.originalUrl,
+          },
+          "Access denied by role"
+        );
+
+        return sendError(res, {
+          statusCode: 403,
+          message: "Access Denied",
+        });
       }
 
       return next();
     } catch (error) {
-      return res.status(403).json({ message: "Forbidden" });
+      logger.error(
+        {
+          event: "authorization_role_check_failed",
+          method: req.method,
+          path: req.originalUrl,
+          error,
+        },
+        "Role authorization check failed"
+      );
+
+      return sendError(res, {
+        statusCode: 403,
+        message: "Forbidden",
+      });
     }
   };
 };

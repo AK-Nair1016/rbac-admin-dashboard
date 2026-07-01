@@ -4,6 +4,7 @@ import {
   upsertEntityPermission,
 } from "../db/permission.queries";
 import type { PermissionValue } from "../db/permission.queries";
+import { logger } from "../utils/logger";
 
 type SavePermissionInput = {
   userId: string;
@@ -24,5 +25,21 @@ export const savePermission = async ({
   entityId,
   permission,
 }: SavePermissionInput) => {
-  return upsertEntityPermission(userId, entityId, permission);
+  const permissionRecord = await upsertEntityPermission(
+    userId,
+    entityId,
+    permission
+  );
+
+  logger.info(
+    {
+      event: "entity_permission_upserted",
+      userId,
+      entityId,
+      permission,
+    },
+    "Entity permission saved"
+  );
+
+  return permissionRecord;
 };

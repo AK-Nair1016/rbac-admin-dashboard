@@ -8,12 +8,14 @@
 -   [x] RBAC role enforcement fixed
 -   [x] Permissions slice refactored
 -   [x] Entities slice refactored
--   [ ] Service layer cleanup
--   [ ] Thin controllers
+-   [x] Users slice refactored
+-   [x] Dashboard / metrics slice refactored
+-   [x] Service layer cleanup
+-   [x] Thin controllers
 -   [ ] Validation middleware
 -   [x] Global error handler
--   [ ] Response wrapper
--   [ ] Structured logging
+-   [x] Response wrapper
+-   [x] Structured logging
 -   [ ] Query layer cleanup
 -   [x] Update CONTEXT_WINDOW
 
@@ -69,7 +71,7 @@
 
 ## Before Every Merge
 
--   [ ] Documentation updated
--   [ ] CONTEXT_WINDOW updated
+-   [x] Documentation updated
+-   [x] CONTEXT_WINDOW updated
 -   [ ] Tests pass
 -   [ ] No architecture violations
