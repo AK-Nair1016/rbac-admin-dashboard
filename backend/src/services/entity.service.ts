@@ -1,0 +1,139 @@
+import {
+  createEntityRecord,
+  entityExists,
+  EntityStatus,
+  findEntities,
+  findEntitiesByOwner,
+  findEntityById,
+  updateEntityRecord,
+  updateEntityStatusRecord,
+  upsertEntityAssignment,
+  userExists,
+} from "../db/entity.queries";
+
+type ListQuery = {
+  page?: unknown;
+  limit?: unknown;
+  search?: unknown;
+  status?: unknown;
+};
+
+type CreateEntityInput = {
+  name: string;
+  status?: string;
+  ownerId: string;
+};
+
+type UpdateEntityInput = {
+  entityId: string;
+  name?: string;
+  status?: string;
+};
+
+type AssignEntityInput = {
+  entityId: string;
+  userId: string;
+};
+
+const getPagination = (query: ListQuery) => {
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  return { page, limit, offset };
+};
+
+const getOptionalString = (value: unknown): string | undefined => {
+  return typeof value === "string" ? value : undefined;
+};
+
+const normalizeStatus = (status?: string): EntityStatus => {
+  return status === "ACTIVE" || status === "INACTIVE" ? status : "ACTIVE";
+};
+
+export const createEntityForOwner = async ({
+  name,
+  status,
+  ownerId,
+}: CreateEntityInput) => {
+  return createEntityRecord(name.trim(), normalizeStatus(status), ownerId);
+};
+
+export const listEntities = async (query: ListQuery) => {
+  const { page, limit, offset } = getPagination(query);
+  const { rows, total } = await findEntities(
+    {
+      status: getOptionalString(query.status),
+      search: getOptionalString(query.search),
+    },
+    { limit, offset }
+  );
+
+  return {
+    page,
+    limit,
+    total,
+    data: rows,
+  };
+};
+
+export const listEntitiesForOwner = async (
+  ownerId: string,
+  query: ListQuery
+) => {
+  const { page, limit, offset } = getPagination(query);
+  const { rows, total } = await findEntitiesByOwner(
+    ownerId,
+    {
+      search: getOptionalString(query.search),
+    },
+    { limit, offset }
+  );
+
+  return {
+    page,
+    limit,
+    total,
+    data: rows,
+  };
+};
+
+export const getEntity = async (entityId: string) => {
+  return findEntityById(entityId);
+};
+
+export const updateEntityDetails = async ({
+  entityId,
+  name,
+  status,
+}: UpdateEntityInput) => {
+  return updateEntityRecord(entityId, { name, status });
+};
+
+export const updateEntityStatus = async (
+  entityId: string,
+  status: EntityStatus
+) => {
+  return updateEntityStatusRecord(entityId, status);
+};
+
+export const assignUserToEntityRecord = async ({
+  entityId,
+  userId,
+}: AssignEntityInput) => {
+  const hasEntity = await entityExists(entityId);
+
+  if (!hasEntity) {
+    return { error: "Entity not found" as const };
+  }
+
+  const hasUser = await userExists(userId);
+
+  if (!hasUser) {
+    return { error: "User not found" as const };
+  }
+
+  return {
+    assignment: await upsertEntityAssignment(entityId, userId),
+  };
+};
