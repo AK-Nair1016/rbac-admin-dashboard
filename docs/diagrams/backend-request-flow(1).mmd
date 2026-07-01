@@ -1,0 +1,17 @@
+flowchart LR
+    A[HTTP Request]
+    --> B[Express Route]
+    --> C[JWT Middleware]
+    --> D[RBAC Middleware]
+    --> E[Validation Middleware]
+    --> F[Controller]
+    --> G[Service Layer]
+    --> H[Database Layer]
+    --> I[(PostgreSQL)]
+
+    G --> J[Audit Service]
+    J --> K[(Audit Logs)]
+
+    I --> G
+    G --> F
+    F --> L[Standard API Response]

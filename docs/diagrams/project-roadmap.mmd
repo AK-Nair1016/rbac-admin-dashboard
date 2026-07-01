@@ -1,0 +1,43 @@
+flowchart LR
+    A[RBAC Admin Dashboard<br/>Current Project]
+
+    A --> B[Backend Refactoring]
+    A --> C[Frontend Refactoring]
+
+    B --> D[Service Layer]
+    B --> E[Validation]
+    B --> F[Centralized Error Handling]
+    B --> G[Audit Logging]
+
+    C --> H[Modern Enterprise UI]
+    C --> I[Reusable Components]
+    C --> J[Dashboard Improvements]
+
+    D --> K[API Access Governance Platform]
+    G --> K
+    J --> K
+
+    K --> L[API Catalog]
+    K --> M[Access Requests]
+    K --> N[Approval Workflow]
+    K --> O[Granted API Access]
+    K --> P[Audit Center]
+    K --> Q[Onboarding]
+    K --> R[Offboarding]
+
+    L --> S[v1 Release]
+    M --> S
+    N --> S
+    O --> S
+    P --> S
+    Q --> S
+    R --> S
+
+    S --> T[Future v2]
+
+    T --> U[Live API Monitoring]
+    T --> V[SSO Integration]
+    T --> W[API Key Metadata]
+    T --> X[Compliance Reports]
+    T --> Y[Notification Center]
+    T --> Z[API Gateway Integration (Optional)]

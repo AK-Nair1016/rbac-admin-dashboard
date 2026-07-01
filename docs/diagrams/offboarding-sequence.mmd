@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    participant Admin
+    participant Platform
+    participant DB
+    participant Audit
+
+    Admin->>Platform: Offboard Employee
+    Platform->>DB: Set User Status = Offboarded
+    Platform->>DB: Find Active API Access
+    Platform->>DB: Revoke All API Access
+    Platform->>DB: Close Pending Requests
+    Platform->>DB: Remove Team Assignment
+    Platform->>Audit: Record Offboarding Event
+    Platform-->>Admin: Offboarding Complete

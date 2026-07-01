@@ -1,0 +1,16 @@
+flowchart TD
+    A[React Frontend] --> B[React Router]
+    B --> C[Protected Routes]
+    C --> D[Express API]
+
+    D --> E[JWT Middleware]
+    E --> F[RBAC Middleware]
+    F --> G[Validation Middleware]
+
+    G --> H[Controllers]
+    H --> I[Services]
+    I --> J[Database Layer]
+    J --> K[(PostgreSQL)]
+
+    I --> L[Audit Service]
+    L --> M[(Audit Logs)]

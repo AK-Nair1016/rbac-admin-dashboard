@@ -1,0 +1,23 @@
+stateDiagram-v2
+    [*] --> Pending
+
+    Pending --> ManagerApproved : Team Lead Approves
+    Pending --> Rejected : Reject
+
+    ManagerApproved --> SecurityApproved : Security Approves
+    ManagerApproved --> Rejected : Reject
+
+    SecurityApproved --> Granted : Grant Access
+
+    Granted --> Expiring : Near Expiry
+    Granted --> Revoked : Manual Revoke
+
+    Expiring --> Renewed : Extend Access
+    Expiring --> Expired : Expiry Date Reached
+
+    Renewed --> Granted
+
+    Expired --> Archived
+    Revoked --> Archived
+
+    Archived --> [*]

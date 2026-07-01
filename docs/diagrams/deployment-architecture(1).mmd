@@ -1,0 +1,24 @@
+flowchart TB
+    U[User Browser]
+
+    subgraph Frontend
+        F[React + Vite]
+    end
+
+    subgraph Backend
+        B[Express API]
+        M[JWT & RBAC Middleware]
+        S[Service Layer]
+    end
+
+    subgraph Database
+        D[(PostgreSQL)]
+        A[(Audit Logs)]
+    end
+
+    U --> F
+    F -->|HTTPS REST| B
+    B --> M
+    M --> S
+    S --> D
+    S --> A

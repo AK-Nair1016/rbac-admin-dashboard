@@ -1,0 +1,15 @@
+flowchart TD
+    A[Client Request] --> B[JWT Token]
+    B --> C{Token Valid?}
+    C -- No --> X[401 Unauthorized]
+    C -- Yes --> D[Extract User]
+    D --> E[Load User Role]
+    E --> F[Load Permissions]
+    F --> G{Required Permission Exists?}
+    G -- No --> Y[403 Forbidden]
+    G -- Yes --> H[Controller]
+    H --> I[Service]
+    I --> J[Database]
+    I --> K[Audit Service]
+    K --> L[(Audit Logs)]
+    J --> M[API Response]
