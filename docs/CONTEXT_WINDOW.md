@@ -40,14 +40,15 @@ Priority:
 - Reusable API response helpers introduced and applied incrementally to refactored backend slices
 - Structured logging introduced with Pino across auth, authorization, errors, and key business operations
 - Startup documentation was consolidated into `docs/`, and the duplicate startup context window was removed
+- Remaining middleware database access was extracted into query and service layers
+- Backend ESLint configuration and lint script were added
 
 ## In Progress
 
-- Backend refactoring
+- None
 
 ## Pending
 
-- Validation middleware for remaining routes
 - Frontend refactor
 - API Catalog
 - Access Requests
@@ -64,15 +65,19 @@ Priority:
 - backend/src/controllers/metrics.controller.ts
 - backend/src/controllers/permission.controller.ts
 - backend/src/controllers/users.controller.ts
+- backend/src/config/db.ts
 - backend/src/middleware/auth.middleware.ts
 - backend/src/middleware/ownership.middleware.ts
 - backend/src/middleware/permission.middleware.ts
+- backend/src/db/entity.queries.ts
+- backend/src/db/permission.queries.ts
 - backend/src/db/dashboard.queries.ts
 - backend/src/db/user.queries.ts
 - backend/src/middleware/rbac.middleware.ts
 - backend/src/middleware/error.middleware.ts
 - backend/package.json
 - backend/package-lock.json
+- backend/eslint.config.mjs
 - backend/src/routes/entity.routes.ts
 - backend/src/routes/permission.routes.ts
 - backend/src/routes/auth.routes.ts
@@ -163,13 +168,16 @@ None.
 - Unexpected and application errors are now logged through the global error middleware.
 - Important business operations are now logged for entity create/update/assignment and permission changes.
 - Repository startup/reference markdown files were moved into `docs/` so all project documentation now lives in one place.
+- The temporary database connection SQL check was removed from `config/db.ts`.
+- Ownership lookup SQL now lives in `db/entity.queries.ts`, and ownership middleware delegates to `entity.service.ts`.
+- Entity permission lookup SQL now lives in `db/permission.queries.ts`, and permission middleware delegates to `permission.service.ts`.
+- All current POST, PUT, and PATCH routes use validation middleware.
+- Backend linting is now available through `npm run lint`.
 
 ## Known Issues
 
 - Existing package lock changes were already present in the working tree and were not part of this refactor.
-- No automated test script exists in `backend/package.json`.
-- Ownership and entity-permission middleware still contain SQL and validation logic.
-- No lint script is defined in `backend/package.json`, so lint verification could not be run.
+- `backend/package.json` still uses the placeholder failing `npm test` script, so no automated backend test suite exists yet.
 
 ## Decisions
 
@@ -184,7 +192,7 @@ None.
 
 ## Next Recommended Task
 
-Complete the remaining Phase 0 backend cleanup by extracting SQL out of `ownership.middleware.ts` and `permission.middleware.ts`, then add a real backend test and lint workflow.
+Begin frontend refactoring, or first replace the placeholder backend `npm test` script with real automated tests if you want stronger regression coverage before frontend work.
 
 ## Session Summary Template
 
@@ -208,7 +216,10 @@ Author: Codex
 - Dashboard service and DB query layers introduced for `/metrics`.
 - Shared API response helpers introduced and applied without changing current frontend payload shapes.
 - Structured logging introduced with Pino across auth, authorization, errors, and key business operations.
+- Remaining middleware SQL extracted into `db/` and delegated through services.
+- Backend lint script and ESLint config added.
 - TypeScript compiler check passed with `npx tsc --noEmit`.
+- ESLint check passed with `npm run lint`.
 
 ## Problems:
 
@@ -220,4 +231,4 @@ Author: Codex
 
 ## Next Step:
 
-Extract remaining middleware SQL and add automated backend quality checks next.
+Frontend refactor or backend test automation next, depending on whether you want UI progress or stronger regression safety first.

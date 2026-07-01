@@ -1,71 +1,7 @@
-// import { Request, Response, NextFunction } from "express";
-// import pool from "../config/db";
-
-// export const checkOwnership = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   try {
-//     const user = (req as any).user;
-//     const entityId = req.params.id;
-
-//     if (!user || !entityId) {
-//       return res.status(400).json({ message: "Invalid request" });
-//     }
-
-//     // Admin can access everything
-//     if (user.role === "admin") {
-//       return next();
-//     }
-
-//     // Fetch entity owner + owner role
-//     const query = `
-//       SELECT e.owner_id, u.role AS owner_role
-//       FROM entities e
-//       JOIN users u ON e.owner_id = u.id
-//       WHERE e.id = $1
-//     `;
-
-//     const result = await pool.query(query, [entityId]);
-
-//     if (result.rows.length === 0) {
-//       return res.status(404).json({ message: "Entity not found" });
-//     }
-
-//     const { owner_id, owner_role } = result.rows[0];
-
-//     // Manager rules
-//     if (user.role === "manager") {
-//       if (owner_role === "admin") {
-//         return res.status(403).json({
-//           message: "Managers cannot access admin-owned entities",
-//         });
-//       }
-//       return next(); // manager → user-owned or own entities
-//     }
-
-//     // User rules
-//     if (user.role === "user") {
-//       if (owner_id !== user.userId) {
-//         return res.status(403).json({ message: "Access denied" });
-//       }
-//       return next();
-//     }
-
-//     return res.status(403).json({ message: "Access denied" });
-//   } catch (error) {
-//     console.error("OWNERSHIP CHECK ERROR:", error);
-//     return res.status(500).json({ message: "Ownership check failed" });
-//   }
-// };
-
-
-
-import { Request, Response, NextFunction } from "express";
-import pool from "../config/db";
-import { logger } from "../utils/logger";
+import { NextFunction, Request, Response } from "express";
+import { evaluateEntityOwnershipAccess } from "../services/entity.service";
 import { sendError } from "../utils/apiResponse";
+import { logger } from "../utils/logger";
 
 export const checkOwnership = async (
   req: Request,
@@ -74,9 +10,8 @@ export const checkOwnership = async (
 ) => {
   try {
     const user = req.user;
-    const entityId = req.params.id;
+    const entityId = req.params.id ? String(req.params.id) : undefined;
 
-    // ✅ If no entityId, this is a list or non-entity route → skip
     if (!entityId) {
       return next();
     }
@@ -97,74 +32,59 @@ export const checkOwnership = async (
       });
     }
 
-    // ✅ Admin can access everything
     if (user.role === "admin") {
       return next();
     }
 
-    // Fetch entity owner + owner role
-    const query = `
-      SELECT e.owner_id, u.role AS owner_role
-      FROM entities e
-      JOIN users u ON e.owner_id = u.id
-      WHERE e.id = $1
-    `;
+    const access = await evaluateEntityOwnershipAccess(entityId, user);
 
-    const result = await pool.query(query, [entityId]);
+    if (access.allowed) {
+      return next();
+    }
 
-    if (result.rows.length === 0) {
+    if (access.statusCode === 404) {
       return sendError(res, {
         statusCode: 404,
         message: "Entity not found",
       });
     }
 
-    const { owner_id, owner_role } = result.rows[0];
-
-    // Manager rules
     if (user.role === "manager") {
-      if (owner_role === "admin") {
-        logger.warn(
-          {
-            event: "authorization_ownership_denied",
-            userId: user.userId,
-            role: user.role,
-            entityId,
-            ownerRole: owner_role,
-            path: req.originalUrl,
-          },
-          "Manager blocked from admin-owned entity"
-        );
+      logger.warn(
+        {
+          event: "authorization_ownership_denied",
+          userId: user.userId,
+          role: user.role,
+          entityId,
+          ownerRole: access.ownerRole,
+          path: req.originalUrl,
+        },
+        "Manager blocked from admin-owned entity"
+      );
 
-        return sendError(res, {
-          statusCode: 403,
-          message: "Managers cannot access admin-owned entities",
-        });
-      }
-      return next();
+      return sendError(res, {
+        statusCode: 403,
+        message: access.message,
+      });
     }
 
-    // User rules
     if (user.role === "user") {
-      if (owner_id !== user.userId) {
-        logger.warn(
-          {
-            event: "authorization_ownership_denied",
-            userId: user.userId,
-            role: user.role,
-            entityId,
-            ownerId: owner_id,
-            path: req.originalUrl,
-          },
-          "User blocked from entity they do not own"
-        );
+      logger.warn(
+        {
+          event: "authorization_ownership_denied",
+          userId: user.userId,
+          role: user.role,
+          entityId,
+          ownerId: access.ownerId,
+          path: req.originalUrl,
+        },
+        "User blocked from entity they do not own"
+      );
 
-        return sendError(res, {
-          statusCode: 403,
-          message: "Access denied",
-        });
-      }
-      return next();
+      return sendError(res, {
+        statusCode: 403,
+        message: access.message,
+      });
     }
 
     logger.warn(
@@ -173,6 +93,8 @@ export const checkOwnership = async (
         userId: user.userId,
         role: user.role,
         entityId,
+        ownerId: access.ownerId,
+        ownerRole: access.ownerRole,
         path: req.originalUrl,
       },
       "Access denied by ownership rules"
@@ -180,7 +102,7 @@ export const checkOwnership = async (
 
     return sendError(res, {
       statusCode: 403,
-      message: "Access denied",
+      message: access.message,
     });
   } catch (error) {
     logger.error(

@@ -16,6 +16,11 @@ export type EntityAssignmentRecord = {
   created_at: Date;
 };
 
+export type EntityOwnershipRecord = {
+  owner_id: string;
+  owner_role: string;
+};
+
 export type EntityFilters = {
   status?: string;
   search?: string;
@@ -141,6 +146,20 @@ export const findEntityById = async (
   `;
 
   const result = await pool.query<EntityRecord>(query, [entityId]);
+  return result.rows[0];
+};
+
+export const findEntityOwnership = async (
+  entityId: string
+): Promise<EntityOwnershipRecord | undefined> => {
+  const query = `
+    SELECT e.owner_id, u.role AS owner_role
+    FROM entities e
+    JOIN users u ON e.owner_id = u.id
+    WHERE e.id = $1
+  `;
+
+  const result = await pool.query<EntityOwnershipRecord>(query, [entityId]);
   return result.rows[0];
 };
 

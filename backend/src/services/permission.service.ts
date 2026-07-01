@@ -1,5 +1,6 @@
 import {
   findAllPermissions,
+  findEntityPermissionForUser,
   findPermissionsForUser,
   upsertEntityPermission,
 } from "../db/permission.queries";
@@ -42,4 +43,34 @@ export const savePermission = async ({
   );
 
   return permissionRecord;
+};
+
+export const hasRequiredEntityPermission = async ({
+  userId,
+  entityId,
+  required,
+}: {
+  userId: string;
+  entityId: string;
+  required: "READ" | "WRITE";
+}) => {
+  const permission = await findEntityPermissionForUser(userId, entityId);
+
+  if (!permission) {
+    return {
+      allowed: false as const,
+      reason: "missing" as const,
+    };
+  }
+
+  const allowed =
+    permission === "READ_WRITE" ||
+    (permission === "READ" && required === "READ") ||
+    (permission === "WRITE" && required === "WRITE");
+
+  return {
+    allowed,
+    reason: allowed ? ("granted" as const) : ("insufficient" as const),
+    permission,
+  };
 };

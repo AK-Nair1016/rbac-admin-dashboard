@@ -17,6 +17,7 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
+  void _next;
   const isDev = process.env.NODE_ENV !== "production";
 
   if (err instanceof SyntaxError && "body" in err) {

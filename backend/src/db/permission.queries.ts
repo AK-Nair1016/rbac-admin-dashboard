@@ -23,6 +23,10 @@ export type PermissionRecord = {
   updated_at?: Date;
 };
 
+export type EntityPermissionLookupRow = {
+  permission: PermissionValue;
+};
+
 export const findPermissionsForUser = async (
   userId: string
 ): Promise<UserPermissionRow[]> => {
@@ -81,4 +85,22 @@ export const upsertEntityPermission = async (
     permission,
   ]);
   return result.rows[0];
+};
+
+export const findEntityPermissionForUser = async (
+  userId: string,
+  entityId: string
+): Promise<PermissionValue | undefined> => {
+  const query = `
+    SELECT permission
+    FROM entity_permissions
+    WHERE user_id = $1 AND entity_id = $2
+  `;
+
+  const result = await pool.query<EntityPermissionLookupRow>(query, [
+    userId,
+    entityId,
+  ]);
+
+  return result.rows[0]?.permission;
 };

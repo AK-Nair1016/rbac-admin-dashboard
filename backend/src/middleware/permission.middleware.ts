@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import pool from "../config/db";
+import { hasRequiredEntityPermission } from "../services/permission.service";
 import { logger } from "../utils/logger";
 import { sendError } from "../utils/apiResponse";
 
@@ -8,7 +8,7 @@ export const enforceEntityPermission =
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const entityId = req.params.id;
+      const entityId = req.params.id ? String(req.params.id) : undefined;
 
       // 🔹 Admin & Manager bypass
       if (["admin", "manager"].includes(user.role)) {
@@ -20,16 +20,13 @@ export const enforceEntityPermission =
         return next();
       }
 
-      const result = await pool.query(
-        `
-        SELECT permission
-        FROM entity_permissions
-        WHERE user_id = $1 AND entity_id = $2
-        `,
-        [user.userId, entityId]
-      );
+      const permissionCheck = await hasRequiredEntityPermission({
+        userId: user.userId,
+        entityId,
+        required,
+      });
 
-      if (result.rows.length === 0) {
+      if (permissionCheck.reason === "missing") {
         logger.warn(
           {
             event: "authorization_entity_permission_missing",
@@ -47,21 +44,14 @@ export const enforceEntityPermission =
         });
       }
 
-      const permission = result.rows[0].permission;
-
-      const allowed =
-        permission === "READ_WRITE" ||
-        (permission === "READ" && required === "READ") ||
-        (permission === "WRITE" && required === "WRITE");
-
-      if (!allowed) {
+      if (!permissionCheck.allowed) {
         logger.warn(
           {
             event: "authorization_entity_permission_denied",
             userId: user.userId,
             entityId,
             requiredPermission: required,
-            actualPermission: permission,
+            actualPermission: permissionCheck.permission,
             path: req.originalUrl,
           },
           "User has insufficient permission for entity"

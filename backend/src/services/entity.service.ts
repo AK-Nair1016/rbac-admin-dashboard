@@ -2,6 +2,7 @@ import {
   createEntityRecord,
   entityExists,
   EntityStatus,
+  findEntityOwnership,
   findEntities,
   findEntitiesByOwner,
   findEntityById,
@@ -34,6 +35,14 @@ type UpdateEntityInput = {
 type AssignEntityInput = {
   entityId: string;
   userId: string;
+};
+
+type OwnershipAccessResult = {
+  allowed: boolean;
+  statusCode?: 403 | 404;
+  message?: string;
+  ownerId?: string;
+  ownerRole?: string;
 };
 
 const getPagination = (query: ListQuery) => {
@@ -117,6 +126,55 @@ export const listEntitiesForOwner = async (
 
 export const getEntity = async (entityId: string) => {
   return findEntityById(entityId);
+};
+
+export const evaluateEntityOwnershipAccess = async (
+  entityId: string,
+  user: { userId: string; role: string }
+): Promise<OwnershipAccessResult> => {
+  const ownership = await findEntityOwnership(entityId);
+
+  if (!ownership) {
+    return {
+      allowed: false,
+      statusCode: 404,
+      message: "Entity not found",
+    };
+  }
+
+  if (user.role === "manager") {
+    if (ownership.owner_role === "admin") {
+      return {
+        allowed: false,
+        statusCode: 403,
+        message: "Managers cannot access admin-owned entities",
+        ownerRole: ownership.owner_role,
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  if (user.role === "user") {
+    if (ownership.owner_id !== user.userId) {
+      return {
+        allowed: false,
+        statusCode: 403,
+        message: "Access denied",
+        ownerId: ownership.owner_id,
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  return {
+    allowed: false,
+    statusCode: 403,
+    message: "Access denied",
+    ownerId: ownership.owner_id,
+    ownerRole: ownership.owner_role,
+  };
 };
 
 export const updateEntityDetails = async ({

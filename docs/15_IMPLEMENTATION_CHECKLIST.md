@@ -12,11 +12,11 @@
 -   [x] Dashboard / metrics slice refactored
 -   [x] Service layer cleanup
 -   [x] Thin controllers
--   [ ] Validation middleware
+-   [x] Validation middleware
 -   [x] Global error handler
 -   [x] Response wrapper
 -   [x] Structured logging
--   [ ] Query layer cleanup
+-   [x] Query layer cleanup
 -   [x] Update CONTEXT_WINDOW
 
 ### Frontend
@@ -74,4 +74,4 @@
 -   [x] Documentation updated
 -   [x] CONTEXT_WINDOW updated
 -   [ ] Tests pass
--   [ ] No architecture violations
+-   [x] No architecture violations
