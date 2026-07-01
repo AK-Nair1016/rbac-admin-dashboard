@@ -4,14 +4,18 @@
 
 ### Backend
 
+-   [x] Auth slice refactored
+-   [x] RBAC role enforcement fixed
+-   [x] Permissions slice refactored
+-   [x] Entities slice refactored
 -   [ ] Service layer cleanup
 -   [ ] Thin controllers
 -   [ ] Validation middleware
--   [ ] Global error handler
+-   [x] Global error handler
 -   [ ] Response wrapper
 -   [ ] Structured logging
 -   [ ] Query layer cleanup
--   [ ] Update CONTEXT_WINDOW
+-   [x] Update CONTEXT_WINDOW
 
 ### Frontend
 
