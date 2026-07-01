@@ -6,11 +6,17 @@ import {
   getEntityById,
   updateEntity,
   updateEntityStatus,
-  assignUserToEntity // ✅ NEW
+  assignUserToEntity,
 } from "../controllers/entity.controller";
 import { authenticateJWT } from "../middleware/auth.middleware";
 import { authorizeRoles } from "../middleware/rbac.middleware";
 import { checkOwnership } from "../middleware/ownership.middleware";
+import {
+  validateAssignUserToEntityRequest,
+  validateCreateEntityRequest,
+  validateUpdateEntityRequest,
+  validateUpdateEntityStatusRequest,
+} from "../validators/entity.validator";
 
 const router = Router();
 
@@ -19,6 +25,7 @@ router.post(
   "/",
   authenticateJWT,
   authorizeRoles("admin", "manager"),
+  validateCreateEntityRequest,
   createEntity
 );
 
@@ -53,6 +60,7 @@ router.put(
   authenticateJWT,
   authorizeRoles("admin", "manager", "user"),
   checkOwnership,
+  validateUpdateEntityRequest,
   updateEntity
 );
 
@@ -61,14 +69,15 @@ router.patch(
   "/:id/status",
   authenticateJWT,
   authorizeRoles("admin", "manager"),
+  validateUpdateEntityStatusRequest,
   updateEntityStatus
 );
 
-// ✅ ASSIGN USER TO ENTITY
 router.post(
   "/:id/assign",
   authenticateJWT,
   authorizeRoles("admin", "manager"),
+  validateAssignUserToEntityRequest,
   assignUserToEntity
 );
 

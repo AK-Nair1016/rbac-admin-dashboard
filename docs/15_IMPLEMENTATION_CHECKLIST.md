@@ -4,14 +4,20 @@
 
 ### Backend
 
--   [ ] Service layer cleanup
--   [ ] Thin controllers
--   [ ] Validation middleware
--   [ ] Global error handler
--   [ ] Response wrapper
--   [ ] Structured logging
--   [ ] Query layer cleanup
--   [ ] Update CONTEXT_WINDOW
+-   [x] Auth slice refactored
+-   [x] RBAC role enforcement fixed
+-   [x] Permissions slice refactored
+-   [x] Entities slice refactored
+-   [x] Users slice refactored
+-   [x] Dashboard / metrics slice refactored
+-   [x] Service layer cleanup
+-   [x] Thin controllers
+-   [x] Validation middleware
+-   [x] Global error handler
+-   [x] Response wrapper
+-   [x] Structured logging
+-   [x] Query layer cleanup
+-   [x] Update CONTEXT_WINDOW
 
 ### Frontend
 
@@ -65,7 +71,7 @@
 
 ## Before Every Merge
 
--   [ ] Documentation updated
--   [ ] CONTEXT_WINDOW updated
+-   [x] Documentation updated
+-   [x] CONTEXT_WINDOW updated
 -   [ ] Tests pass
--   [ ] No architecture violations
+-   [x] No architecture violations

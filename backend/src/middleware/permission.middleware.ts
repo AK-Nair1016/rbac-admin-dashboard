@@ -1,12 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import pool from "../config/db";
+import { hasRequiredEntityPermission } from "../services/permission.service";
+import { logger } from "../utils/logger";
+import { sendError } from "../utils/apiResponse";
 
 export const enforceEntityPermission =
   (required: "READ" | "WRITE") =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const entityId = req.params.id;
+      const entityId = req.params.id ? String(req.params.id) : undefined;
 
       // 🔹 Admin & Manager bypass
       if (["admin", "manager"].includes(user.role)) {
@@ -18,38 +20,62 @@ export const enforceEntityPermission =
         return next();
       }
 
-      const result = await pool.query(
-        `
-        SELECT permission
-        FROM entity_permissions
-        WHERE user_id = $1 AND entity_id = $2
-        `,
-        [user.userId, entityId]
-      );
+      const permissionCheck = await hasRequiredEntityPermission({
+        userId: user.userId,
+        entityId,
+        required,
+      });
 
-      if (result.rows.length === 0) {
-        return res.status(403).json({
+      if (permissionCheck.reason === "missing") {
+        logger.warn(
+          {
+            event: "authorization_entity_permission_missing",
+            userId: user.userId,
+            entityId,
+            requiredPermission: required,
+            path: req.originalUrl,
+          },
+          "User has no permission for entity"
+        );
+
+        return sendError(res, {
+          statusCode: 403,
           message: "No permission for this entity",
         });
       }
 
-      const permission = result.rows[0].permission;
+      if (!permissionCheck.allowed) {
+        logger.warn(
+          {
+            event: "authorization_entity_permission_denied",
+            userId: user.userId,
+            entityId,
+            requiredPermission: required,
+            actualPermission: permissionCheck.permission,
+            path: req.originalUrl,
+          },
+          "User has insufficient permission for entity"
+        );
 
-      const allowed =
-        permission === "READ_WRITE" ||
-        (permission === "READ" && required === "READ") ||
-        (permission === "WRITE" && required === "WRITE");
-
-      if (!allowed) {
-        return res.status(403).json({
+        return sendError(res, {
+          statusCode: 403,
           message: "Insufficient permission",
         });
       }
 
       return next();
     } catch (error) {
-      console.error("PERMISSION MIDDLEWARE ERROR:", error);
-      return res.status(500).json({
+      logger.error(
+        {
+          event: "authorization_entity_permission_check_failed",
+          path: req.originalUrl,
+          error,
+        },
+        "Entity permission enforcement failed"
+      );
+
+      return sendError(res, {
+        statusCode: 500,
         message: "Permission enforcement failed",
       });
     }

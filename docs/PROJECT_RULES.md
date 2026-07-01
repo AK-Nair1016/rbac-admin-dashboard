@@ -54,8 +54,8 @@ unless explicitly requested.
 
 ## Documentation Rules
 
-Before coding: 1. Read AGENT.md 2. Read CONTEXT_WINDOW.md 3. Read
-relevant docs.
+Before coding: 1. Read docs/AGENT.md 2. Read docs/CONTEXT_WINDOW.md 3.
+Read relevant docs.
 
 After major work: - Update CONTEXT_WINDOW.md - Update docs if
 architecture changes.

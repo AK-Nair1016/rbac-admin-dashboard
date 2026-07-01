@@ -9,6 +9,7 @@ import entityRoutes from "./routes/entity.routes";
 import metricsRoutes from "./routes/metrics.routes";
 import userRoutes from "./routes/users.routes";
 import permissionRoutes from "./routes/permission.routes";
+import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 
 const app = express();
 
@@ -59,43 +60,11 @@ app.use("/metrics", metricsRoutes);
 app.use("/users", userRoutes);
 app.use("/permissions", permissionRoutes);
 
-// Health check endpoint
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "OK" });
 });
 
-/* -----------------------------------------------------
-   404 Handler
------------------------------------------------------ */
-
-app.use((_req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
-
-/* -----------------------------------------------------
-   Global Error Handler
------------------------------------------------------ */
-
-app.use((err: any, _req: any, res: any, _next: any) => {
-  const isDev = process.env.NODE_ENV !== "production";
-
-  if (err instanceof SyntaxError && "body" in err) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid JSON body",
-    });
-  }
-
-  const statusCode = err.status || 500;
-
-  return res.status(statusCode).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-    ...(isDev && { stack: err.stack }), // Only show stack in dev
-  });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

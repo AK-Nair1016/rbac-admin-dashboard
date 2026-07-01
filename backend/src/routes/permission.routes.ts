@@ -6,6 +6,7 @@ import {
 } from "../controllers/permission.controller";
 import { authenticateJWT } from "../middleware/auth.middleware";
 import { authorizeRoles } from "../middleware/rbac.middleware";
+import { validateUpsertPermissionRequest } from "../validators/permission.validator";
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.post(
   "/",
   authenticateJWT,
   authorizeRoles("admin", "manager"),
+  validateUpsertPermissionRequest,
   upsertPermission
 );
 
