@@ -1,0 +1,123 @@
+/* =========================
+   PAGE CONTAINER
+========================= */
+
+.container {
+  padding: 32px;
+}
+
+/* =========================
+   TITLE
+========================= */
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 28px;
+  color: #0f172a;
+}
+
+/* =========================
+   TABLE WRAPPER
+========================= */
+
+.table {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+  display: grid;
+  grid-template-columns: 2fr 2fr 3fr;
+  padding: 16px 24px;
+  background: #0f172a; /* dark slate */
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* =========================
+   ROW
+========================= */
+
+.row {
+  display: grid;
+  grid-template-columns: 2fr 2fr 3fr;
+  padding: 18px 24px;
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  font-size: 14px;
+  background: #ffffff;
+  transition: background 0.15s ease;
+}
+
+.row:hover {
+  background: #f8fafc;
+}
+
+/* =========================
+   USER + ENTITY TEXT
+========================= */
+
+.row span {
+  color: #1e293b;
+}
+
+/* =========================
+   PERMISSION SECTION
+========================= */
+
+.permissions {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+/* =========================
+   PERMISSION LABEL
+========================= */
+
+.permissions label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.permissions label:hover {
+  color: #2563eb;
+}
+
+/* =========================
+   CHECKBOX STYLE
+========================= */
+
+.permissions input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+/* =========================
+   LOADING / ERROR STATES
+========================= */
+
+.loading,
+.error {
+  padding: 24px;
+  font-size: 14px;
+  color: #64748b;
+}

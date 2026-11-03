@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant Admin
+    participant Platform
+    participant DB
+    participant Audit
+
+    Admin->>Platform: Create Employee
+    Platform->>DB: Save User
+    Admin->>Platform: Assign Department
+    Platform->>DB: Update User
+    Admin->>Platform: Assign Team
+    Platform->>DB: Update Team Mapping
+    Admin->>Platform: Assign Role
+    Platform->>DB: Save Role Mapping
+    Platform->>DB: Grant Default API Access
+    Platform->>Audit: Record Onboarding Event
+    Audit-->>Admin: Employee Ready

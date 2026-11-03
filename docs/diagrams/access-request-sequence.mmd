@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    participant Dev as Developer
+    participant UI as Web Portal
+    participant API as Backend API
+    participant TL as Team Lead
+    participant SA as Security Admin
+    participant DB as PostgreSQL
+    participant Audit as Audit Service
+
+    Dev->>UI: Submit API Access Request
+    UI->>API: POST /access-requests
+    API->>DB: Store request (Pending)
+    API->>Audit: Log request created
+    API-->>TL: Notify pending approval
+
+    TL->>API: Approve request
+    API->>DB: Update status (Manager Approved)
+    API->>Audit: Log manager approval
+
+    SA->>API: Security approval
+    API->>DB: Create User API Access
+    API->>DB: Update request (Granted)
+    API->>Audit: Log access granted
+    API-->>Dev: Access Granted

@@ -1,234 +1,150 @@
 import { Request, Response } from "express";
-import pool from "../config/db";
+import type { EntityStatus } from "../db/entity.queries";
+import {
+  assignUserToEntityRecord,
+  createEntityForOwner,
+  getEntity,
+  listEntities,
+  listEntitiesForOwner,
+  updateEntityDetails,
+  updateEntityStatus as updateEntityStatusService,
+} from "../services/entity.service";
+import { sendError, sendSuccess } from "../utils/apiResponse";
+import { asyncHandler } from "../utils/asyncHandler";
 
-// CREATE entity (Admin, Manager)
-export const createEntity = async (req: Request, res: Response) => {
-  console.log("🟢 [CREATE ENTITY] Entered");
+const getEntityId = (req: Request) => String(req.params.id);
 
-  try {
-    const { name, status } = req.body;
-    const ownerId = req.user!.userId;
-
-    if (!name) {
-      return res.status(400).json({
-        message: "Name is required",
+export const createEntity = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      return sendError(res, {
+        statusCode: 401,
+        message: "Unauthorized",
       });
     }
 
-    const query = `
-      INSERT INTO entities (name, status, owner_id)
-      VALUES ($1, $2, $3)
-      RETURNING *
-    `;
-
-    const result = await pool.query(query, [
-      name,
-      status ?? "ACTIVE",
-      ownerId,
-    ]);
-
-    return res.status(201).json({
-      message: "Entity created successfully",
-      data: result.rows[0],
-    });
-  } catch (error) {
-    console.error("❌ [CREATE ENTITY] Error:", error);
-
-    return res.status(500).json({
-      message: "Failed to create entity",
-    });
-  } finally {
-    console.log("🔵 [CREATE ENTITY] Exited");
-  }
-};
-
-// GET all entities (Admin, Manager)
-export const getAllEntities = async (req: Request, res: Response) => {
-  try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-
-    const status = req.query.status as string | undefined;
-
-    let whereClause = "";
-    const values: any[] = [];
-    let idx = 1;
-
-    if (status) {
-      whereClause = `WHERE status = $${idx++}`;
-      values.push(status);
-    }
-
-    // 🔹 Data query
-    const dataQuery = `
-      SELECT id, name, status, owner_id, created_at
-      FROM entities
-      ${whereClause}
-      ORDER BY created_at DESC
-      LIMIT $${idx++} OFFSET $${idx}
-    `;
-
-    const dataValues = [...values, limit, offset];
-    const dataResult = await pool.query(dataQuery, dataValues);
-
-    // 🔹 Count query (NO limit / offset)
-    const countQuery = `
-      SELECT COUNT(*) FROM entities
-      ${whereClause}
-    `;
-    const countResult = await pool.query(countQuery, values);
-
-    return res.status(200).json({
-      page,
-      limit,
-      total: Number(countResult.rows[0].count),
-      data: dataResult.rows,
-    });
-  } catch (error) {
-    console.error("GET ALL ENTITIES ERROR:", error);
-    return res.status(500).json({ message: "Failed to fetch entities" });
-  }
-};
-
-
-
-// GET my entities (User)
-export const getMyEntities = async (req: Request, res: Response) => {
-  try {
-    const user = req.user!;
-
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-
-    // 🔹 Data query
-    const dataQuery = `
-      SELECT id, name, status, owner_id, created_at
-      FROM entities
-      WHERE owner_id = $1
-      ORDER BY created_at DESC
-      LIMIT $2 OFFSET $3
-    `;
-
-    const dataResult = await pool.query(dataQuery, [
-      user.userId,
-      limit,
-      offset,
-    ]);
-
-    // 🔹 Count query
-    const countQuery = `
-      SELECT COUNT(*) FROM entities
-      WHERE owner_id = $1
-    `;
-
-    const countResult = await pool.query(countQuery, [user.userId]);
-
-    return res.status(200).json({
-      page,
-      limit,
-      total: Number(countResult.rows[0].count),
-      data: dataResult.rows,
-    });
-  } catch (error) {
-    console.error("GET MY ENTITIES ERROR:", error);
-    return res.status(500).json({ message: "Failed to fetch user entities" });
-  }
-};
-
-
-// GET EntityById
-export const getEntityById = async (req: Request, res: Response) => {
-  try {
-    const entityId= req.params.id;
-
-    if(!entityId){
-      return res.status(400).json({ message: "Entity ID is required" });
-    }
-    const query =`
-      SELECT id, name, status, owner_id, created_at
-      FROM entities
-      WHERE id = $1
-    `;
-
-    const result= await pool.query(query,[entityId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Entity not found" });
-    }
-
-    return res.status(200).json({
-      entity: result.rows[0],
-    });
-  } catch (error) {
-    console.error("GET ENTITY BY ID ERROR:", error);
-    return res.status(500).json({ message: "Failed to fetch entity" });
-  }
-};
-
-export const updateEntity = async (req: Request, res: Response) => {
-  try {
-    const entityId = req.params.id;
     const { name, status } = req.body;
-
-    if (!entityId) {
-      return res.status(400).json({ message: "Entity ID is required" });
-    }
-
-    if (
-  (name === undefined || name.trim() === "") &&
-  (status === undefined || status.trim() === "")
-) {
-  return res.status(400).json({
-    message: "At least one valid field must be provided",
-  });
-}
-
-
-    // Build dynamic update safely
-    const fields: string[] = [];
-    const values: any[] = [];
-    let idx = 1;
-
-    if (name) {
-      fields.push(`name = $${idx++}`);
-      values.push(name);
-    }
-
-    if (status) {
-      fields.push(`status = $${idx++}`);
-      values.push(status);
-    }
-
-    values.push(entityId);
-    if (fields.length === 0) {
-  return res.status(400).json({
-    message: "No valid fields to update",
-  });
-}
-
-
-    const query = `
-      UPDATE entities
-      SET ${fields.join(", ")}
-      WHERE id = $${idx}
-      RETURNING id, name, status, owner_id, created_at
-    `;
-
-    const result = await pool.query(query, values);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Entity not found" });
-    }
-
-    return res.status(200).json({
-      message: "Entity updated successfully",
-      entity: result.rows[0],
+    const entity = await createEntityForOwner({
+      name,
+      status,
+      ownerId: req.user.userId,
     });
-  } catch (error) {
-    console.error("UPDATE ENTITY ERROR:", error);
-    return res.status(500).json({ message: "Failed to update entity" });
-  }
-};
 
+    return sendSuccess(res, {
+      statusCode: 201,
+      message: "Entity created successfully",
+      data: entity,
+    });
+  }
+);
+
+export const getAllEntities = asyncHandler(
+  async (req: Request, res: Response) => {
+    const entities = await listEntities(req.query);
+
+    return sendSuccess(res, {
+      payload: entities,
+    });
+  }
+);
+
+export const getMyEntities = asyncHandler(
+  async (req: Request, res: Response) => {
+    const user = req.user!;
+    const entities = await listEntitiesForOwner(user.userId, req.query);
+
+    return sendSuccess(res, {
+      payload: entities,
+    });
+  }
+);
+
+export const getEntityById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const entity = await getEntity(getEntityId(req));
+
+    if (!entity) {
+      return sendError(res, {
+        statusCode: 404,
+        message: "Entity not found",
+      });
+    }
+
+    return sendSuccess(res, {
+      extras: {
+        entity,
+      },
+    });
+  }
+);
+
+export const updateEntity = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { name, status } = req.body;
+    const entity = await updateEntityDetails({
+      entityId: getEntityId(req),
+      name,
+      status,
+    });
+
+    if (!entity) {
+      return sendError(res, {
+        statusCode: 404,
+        message: "Entity not found",
+      });
+    }
+
+    return sendSuccess(res, {
+      message: "Entity updated successfully",
+      extras: {
+        entity,
+      },
+    });
+  }
+);
+
+export const updateEntityStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const entity = await updateEntityStatusService(
+      getEntityId(req),
+      req.body.status as EntityStatus
+    );
+
+    if (!entity) {
+      return sendError(res, {
+        statusCode: 404,
+        message: "Entity not found",
+      });
+    }
+
+    return sendSuccess(res, {
+      message: "Entity status updated successfully",
+      extras: {
+        entity,
+      },
+    });
+  }
+);
+
+export const assignUserToEntity = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await assignUserToEntityRecord({
+      entityId: getEntityId(req),
+      userId: req.body.userId,
+    });
+
+    if ("error" in result) {
+      return sendError(res, {
+        statusCode: 404,
+        message: result.error,
+      });
+    }
+
+    return sendSuccess(res, {
+      message: "User assigned to entity successfully",
+      extras: {
+        assignment: result.assignment,
+      },
+    });
+  }
+);

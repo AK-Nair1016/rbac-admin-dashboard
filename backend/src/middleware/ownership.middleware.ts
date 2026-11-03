@@ -1,5 +1,7 @@
-import { Request, Response, NextFunction } from "express";
-import pool from "../config/db";
+import { NextFunction, Request, Response } from "express";
+import { evaluateEntityOwnershipAccess } from "../services/entity.service";
+import { sendError } from "../utils/apiResponse";
+import { logger } from "../utils/logger";
 
 export const checkOwnership = async (
   req: Request,
@@ -7,55 +9,114 @@ export const checkOwnership = async (
   next: NextFunction
 ) => {
   try {
-    const user = (req as any).user;
-    const entityId = req.params.id;
+    const user = req.user;
+    const entityId = req.params.id ? String(req.params.id) : undefined;
 
-    if (!user || !entityId) {
-      return res.status(400).json({ message: "Invalid request" });
+    if (!entityId) {
+      return next();
     }
 
-    // Admin can access everything
+    if (!user) {
+      logger.warn(
+        {
+          event: "authorization_ownership_missing_user",
+          method: req.method,
+          path: req.originalUrl,
+        },
+        "Ownership check attempted without authenticated user"
+      );
+
+      return sendError(res, {
+        statusCode: 401,
+        message: "Unauthorized",
+      });
+    }
+
     if (user.role === "admin") {
       return next();
     }
 
-    // Fetch entity owner + owner role
-    const query = `
-      SELECT e.owner_id, u.role AS owner_role
-      FROM entities e
-      JOIN users u ON e.owner_id = u.id
-      WHERE e.id = $1
-    `;
+    const access = await evaluateEntityOwnershipAccess(entityId, user);
 
-    const result = await pool.query(query, [entityId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Entity not found" });
-    }
-
-    const { owner_id, owner_role } = result.rows[0];
-
-    // Manager rules
-    if (user.role === "manager") {
-      if (owner_role === "admin") {
-        return res.status(403).json({
-          message: "Managers cannot access admin-owned entities",
-        });
-      }
-      return next(); // manager → user-owned or own entities
-    }
-
-    // User rules
-    if (user.role === "user") {
-      if (owner_id !== user.userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+    if (access.allowed) {
       return next();
     }
 
-    return res.status(403).json({ message: "Access denied" });
+    if (access.statusCode === 404) {
+      return sendError(res, {
+        statusCode: 404,
+        message: "Entity not found",
+      });
+    }
+
+    if (user.role === "manager") {
+      logger.warn(
+        {
+          event: "authorization_ownership_denied",
+          userId: user.userId,
+          role: user.role,
+          entityId,
+          ownerRole: access.ownerRole,
+          path: req.originalUrl,
+        },
+        "Manager blocked from admin-owned entity"
+      );
+
+      return sendError(res, {
+        statusCode: 403,
+        message: access.message,
+      });
+    }
+
+    if (user.role === "user") {
+      logger.warn(
+        {
+          event: "authorization_ownership_denied",
+          userId: user.userId,
+          role: user.role,
+          entityId,
+          ownerId: access.ownerId,
+          path: req.originalUrl,
+        },
+        "User blocked from entity they do not own"
+      );
+
+      return sendError(res, {
+        statusCode: 403,
+        message: access.message,
+      });
+    }
+
+    logger.warn(
+      {
+        event: "authorization_ownership_denied",
+        userId: user.userId,
+        role: user.role,
+        entityId,
+        ownerId: access.ownerId,
+        ownerRole: access.ownerRole,
+        path: req.originalUrl,
+      },
+      "Access denied by ownership rules"
+    );
+
+    return sendError(res, {
+      statusCode: 403,
+      message: access.message,
+    });
   } catch (error) {
-    console.error("OWNERSHIP CHECK ERROR:", error);
-    return res.status(500).json({ message: "Ownership check failed" });
+    logger.error(
+      {
+        event: "authorization_ownership_check_failed",
+        path: req.originalUrl,
+        error,
+      },
+      "Ownership check failed"
+    );
+
+    return sendError(res, {
+      statusCode: 500,
+      message: "Ownership check failed",
+    });
   }
 };

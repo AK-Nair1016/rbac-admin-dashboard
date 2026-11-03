@@ -1,46 +1,70 @@
-// import "./types/express";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+
 import authRoutes from "./routes/auth.routes";
 import protectedRoutes from "./routes/protected.routes";
 import entityRoutes from "./routes/entity.routes";
-import metricsRoutes from "./routes/metrics.routes"
+import metricsRoutes from "./routes/metrics.routes";
+import userRoutes from "./routes/users.routes";
+import permissionRoutes from "./routes/permission.routes";
+import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 
 const app = express();
 
-// 🔴 LOG REQUEST BEFORE ANY PARSING
-app.use((req, _res, next) => {
-  console.log("➡️ REQUEST:", req.method, req.originalUrl);
-  next();
-});
+/* -----------------------------------------------------
+   Core Security Configuration
+----------------------------------------------------- */
 
-// 🔴 SAFE JSON PARSER
+// Trust proxy (required if deployed behind reverse proxy)
+app.set("trust proxy", 1);
+
+// Security headers
+app.use(helmet());
+
+// Global rate limiter
 app.use(
-  express.json({
-    strict: true,
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    standardHeaders: true,
+    legacyHeaders: false,
   })
 );
 
-app.use(cors());
+// CORS configuration
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
 
-// routes
+// JSON body parser with size limit
+app.use(
+  express.json({
+    strict: true,
+    limit: "10kb",
+  })
+);
+
+/* -----------------------------------------------------
+   Routes
+----------------------------------------------------- */
+
 app.use("/auth", authRoutes);
 app.use("/protected", protectedRoutes);
 app.use("/entities", entityRoutes);
-app.use("/metrics",metricsRoutes)
+app.use("/metrics", metricsRoutes);
+app.use("/users", userRoutes);
+app.use("/permissions", permissionRoutes);
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "OK" });
+  res.status(200).json({ status: "OK" });
 });
 
-// 🔴 JSON ERROR HANDLER (prevents hanging)
-app.use((err: any, _req: any, res: any, _next: any) => {
-  if (err instanceof SyntaxError && "body" in err) {
-    console.error("❌ Invalid JSON body received");
-    return res.status(400).json({ message: "Invalid JSON body" });
-  }
-  console.error("❌ Unknown error", err);
-  return res.status(500).json({ message: "Internal server error" });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

@@ -3,16 +3,21 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
 import api from "../api/axios";
 import { AuthContext } from "../auth/AuthContext";
+import loginImg from "../assets/loginImg.png";
 
 const Login = () => {
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // 🔐 Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // ⏳ UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 🚀 Handle login submit
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -24,7 +29,11 @@ const Login = () => {
       }
 
       const res = await api.post("/auth/login", { email, password });
+
+      // 🔑 Save token in context
       authContext.login(res.data.token);
+
+      // 🔄 Redirect after login
       navigate("/dashboard", { replace: true });
     } catch (err: any) {
       setError(
@@ -38,13 +47,16 @@ const Login = () => {
 
   return (
     <div className={styles.page}>
-      {/* LEFT: ILLUSTRATION */}
+      {/* 🖼 Left Illustration Panel */}
       <div className={styles.left}>
-        <img src="src/assets/loginImg.png" alt="Secure dashboard access"className={styles.image}
+        <img
+          src={loginImg}
+          alt="Secure dashboard access"
+          className={styles.image}
         />
       </div>
 
-      {/* RIGHT: LOGIN */}
+      {/* 🔐 Right Login Panel */}
       <div className={styles.right}>
         <div className={styles.card}>
           <h1 className={styles.heading}>Login to Dashboard</h1>
@@ -52,8 +64,10 @@ const Login = () => {
             Secure access for administrators and managers
           </p>
 
+          {/* ❗ Error Message */}
           {error && <div className={styles.errorBox}>{error}</div>}
 
+          {/* 📝 Login Form */}
           <form className={styles.form} onSubmit={handleSubmit}>
             <input
               type="email"
@@ -62,6 +76,7 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               required
+              className={styles.input}
             />
 
             <input
@@ -71,9 +86,14 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
               required
+              className={styles.input}
             />
 
-            <button type="submit" disabled={loading}>
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles.primaryButton}
+            >
               {loading ? "Authenticating…" : "Login"}
             </button>
           </form>

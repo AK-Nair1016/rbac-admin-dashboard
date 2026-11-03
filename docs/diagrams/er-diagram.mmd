@@ -1,0 +1,53 @@
+erDiagram
+    DEPARTMENTS ||--o{ TEAMS : contains
+    TEAMS ||--o{ USERS : has
+    ROLES ||--o{ USERS : assigned_to
+    ROLES ||--o{ ROLE_PERMISSIONS : grants
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : mapped_to
+
+    USERS ||--o{ ACCESS_REQUESTS : creates
+    APIS ||--o{ ACCESS_REQUESTS : requested_for
+
+    USERS ||--o{ USER_API_ACCESS : owns
+    APIS ||--o{ USER_API_ACCESS : assigned_to
+
+    USERS ||--o{ AUDIT_LOGS : performs
+
+    USERS {
+      int id PK
+      string employee_id
+      string name
+      string email
+      int role_id FK
+      int team_id FK
+    }
+
+    APIS {
+      int id PK
+      string name
+      string environment
+      string status
+    }
+
+    ACCESS_REQUESTS {
+      int id PK
+      int user_id FK
+      int api_id FK
+      string permission
+      string status
+    }
+
+    USER_API_ACCESS {
+      int id PK
+      int user_id FK
+      int api_id FK
+      string permission
+      string status
+    }
+
+    AUDIT_LOGS {
+      int id PK
+      int actor_id FK
+      string action
+      datetime created_at
+    }

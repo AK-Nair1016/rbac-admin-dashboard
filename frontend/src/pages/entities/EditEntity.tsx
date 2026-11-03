@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getEntityById, updateEntity } from "../../api/entities";
 import type { Entity } from "../../api/entities";
+import styles from "./EditEntity.module.css";
 
 const EditEntity = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,11 +22,10 @@ const EditEntity = () => {
     const fetchEntity = async () => {
       try {
         setLoading(true);
-
         const data = await getEntityById(id);
 
         setEntity(data);
-        setName(data.name??"");
+        setName(data.name ?? "");
         setStatus(data.status ?? "ACTIVE");
       } catch {
         setError("Failed to load entity");
@@ -39,10 +39,9 @@ const EditEntity = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!id) return;
 
-    if (!name||!name.trim()) {
+    if (!name.trim()) {
       setError("Name is required");
       return;
     }
@@ -51,23 +50,10 @@ const EditEntity = () => {
       setSaving(true);
       setError(null);
 
-const payload: any = {};
-
-if (name && name.trim()) {
-  payload.name = name.trim();
-}
-
-if (status) {
-  payload.status = status;
-}
-
-if (Object.keys(payload).length === 0) {
-  setError("Nothing to update");
-  return;
-}
-
-await updateEntity(id, payload);
-
+      await updateEntity(id, {
+        name: name.trim(),
+        status,
+      });
 
       navigate("/entities");
     } catch {
@@ -77,16 +63,15 @@ await updateEntity(id, payload);
     }
   };
 
-  if (loading) return <p>Loading entity...</p>;
-  if (error) return <p>{error}</p>;
-  if (!entity) return <p>Entity not found</p>;
+  if (loading) return <div className={styles.state}>Loading entity...</div>;
+  if (!entity) return <div className={styles.state}>Entity not found</div>;
 
   return (
-    <div>
-      <h1>Edit Entity</h1>
+    <div className={styles.container}>
+      <h1 className={styles.title}>Edit Entity</h1>
 
-      <form onSubmit={handleSubmit}>
-        <div>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <div className={styles.field}>
           <label>Name</label>
           <input
             value={name}
@@ -94,7 +79,7 @@ await updateEntity(id, payload);
           />
         </div>
 
-        <div>
+        <div className={styles.field}>
           <label>Status</label>
           <select
             value={status}
@@ -105,10 +90,14 @@ await updateEntity(id, payload);
           </select>
         </div>
 
-        {error && <p>{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
 
-        <button type="submit" disabled={saving}>
-          {saving ? "Updating..." : "Update"}
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={saving}
+        >
+          {saving ? "Updating…" : "Update Entity"}
         </button>
       </form>
     </div>
