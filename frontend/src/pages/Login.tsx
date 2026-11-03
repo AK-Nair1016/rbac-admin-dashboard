@@ -1,45 +1,37 @@
-import { useState, useContext } from "react";
+import { isAxiosError } from "axios";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./Login.module.css";
 import api from "../api/axios";
-import { AuthContext } from "../auth/AuthContext";
 import loginImg from "../assets/loginImg.png";
+import { useAuth } from "../auth/useAuth";
+import styles from "./Login.module.css";
 
 const Login = () => {
-  const authContext = useContext(AuthContext);
+  const { login } = useAuth();
   const navigate = useNavigate();
-
-  // 🔐 Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // ⏳ UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 🚀 Handle login submit
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      if (!authContext) {
-        throw new Error("Auth context missing");
-      }
-
-      const res = await api.post("/auth/login", { email, password });
-
-      // 🔑 Save token in context
-      authContext.login(res.data.token);
-
-      // 🔄 Redirect after login
+      const response = await api.post("/auth/login", { email, password });
+      login(response.data.token);
       navigate("/dashboard", { replace: true });
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          "Invalid credentials. Please try again."
-      );
+    } catch (requestError: unknown) {
+      if (isAxiosError(requestError)) {
+        setError(
+          requestError.response?.data?.message ||
+            "Invalid credentials. Please try again."
+        );
+      } else {
+        setError("Invalid credentials. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -47,33 +39,29 @@ const Login = () => {
 
   return (
     <div className={styles.page}>
-      {/* 🖼 Left Illustration Panel */}
       <div className={styles.left}>
         <img
           src={loginImg}
-          alt="Secure dashboard access"
+          alt="Secure access to the API Access Governance Platform"
           className={styles.image}
         />
       </div>
 
-      {/* 🔐 Right Login Panel */}
       <div className={styles.right}>
         <div className={styles.card}>
-          <h1 className={styles.heading}>Login to Dashboard</h1>
+          <h1 className={styles.heading}>Sign in to Access Governance</h1>
           <p className={styles.subheading}>
-            Secure access for administrators and managers
+            Secure access to the API Access Governance Platform
           </p>
 
-          {/* ❗ Error Message */}
           {error && <div className={styles.errorBox}>{error}</div>}
 
-          {/* 📝 Login Form */}
           <form className={styles.form} onSubmit={handleSubmit}>
             <input
               type="email"
               placeholder="Email address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
               autoComplete="email"
               required
               className={styles.input}
@@ -83,7 +71,7 @@ const Login = () => {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
               required
               className={styles.input}
@@ -94,7 +82,7 @@ const Login = () => {
               disabled={loading}
               className={styles.primaryButton}
             >
-              {loading ? "Authenticating…" : "Login"}
+              {loading ? "Authenticating..." : "Login"}
             </button>
           </form>
         </div>
