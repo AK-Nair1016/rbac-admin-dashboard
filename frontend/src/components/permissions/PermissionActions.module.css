@@ -1,0 +1,40 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #334155;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.option input {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+}
+
+.option:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

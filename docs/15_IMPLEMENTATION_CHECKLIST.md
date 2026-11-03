@@ -35,7 +35,11 @@
 -   [x] Milestone 2: Responsive mobile behavior
 -   [x] Layout cleanup
 -   [x] Sidebar polish
--   [ ] Dashboard redesign
+-   [x] Milestone 4: Dashboard redesign
+-   [x] Milestone 4: KPI presentation
+-   [x] Milestone 4: Chart placement
+-   [x] Milestone 4: Recent activity placeholder
+-   [x] Milestone 4: Responsive dashboard layout
 -   [x] Milestone 3: PageHeader shared component
 -   [x] Milestone 3: SectionCard shared component
 -   [x] Milestone 3: StatCard shared component
@@ -51,6 +55,32 @@
 -   [x] Tables
 -   [x] Forms
 -   [x] Loading/Empty states
+-   [x] Milestone 5: Entities page decomposition
+-   [x] Milestone 5: EntityTable component
+-   [x] Milestone 5: EntityFilters component
+-   [x] Milestone 5: EntityToolbar component
+-   [x] Milestone 5: EntityActions component
+-   [x] Milestone 5: Pagination integration
+-   [x] Milestone 5: User Permissions page decomposition
+-   [x] Milestone 5: PermissionTable component
+-   [x] Milestone 5: PermissionMatrix component
+-   [x] Milestone 5: PermissionToolbar component
+-   [x] Milestone 5: PermissionActions component
+-   [x] Milestone 6: Accessibility polish
+-   [x] Milestone 6: Responsive behavior polish
+-   [x] Milestone 6: Shared loading states
+-   [x] Milestone 6: Shared empty states
+-   [x] Milestone 6: Shared error states
+-   [x] Milestone 6: Shared feedback banner
+-   [x] Milestone 6: Button consistency
+-   [x] Milestone 6: Card consistency
+-   [x] Milestone 6: Table consistency
+-   [x] Milestone 6: Status badge consistency
+-   [x] Milestone 6: API base URL environment configuration
+-   [x] Milestone 6: Browser alert removal
+-   [x] Milestone 6: Typecheck verification
+-   [x] Milestone 6: Lint verification
+-   [x] Milestone 6: Build verification
 -   [x] Update CONTEXT_WINDOW
 
 ## Phase 1 -- Organization
@@ -96,5 +126,5 @@
 
 -   [x] Documentation updated
 -   [x] CONTEXT_WINDOW updated
--   [ ] Tests pass
+-   [x] Tests pass
 -   [x] No architecture violations

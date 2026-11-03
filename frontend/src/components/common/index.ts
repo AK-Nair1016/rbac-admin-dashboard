@@ -2,6 +2,7 @@ export { default as Button } from "./Button";
 export { default as ConfirmDialog } from "./ConfirmDialog";
 export { default as EmptyState } from "./EmptyState";
 export { default as ErrorState } from "./ErrorState";
+export { default as FeedbackBanner } from "./FeedbackBanner";
 export { default as LoadingState } from "./LoadingState";
 export { default as PageHeader } from "./PageHeader";
 export { default as Pagination } from "./Pagination";

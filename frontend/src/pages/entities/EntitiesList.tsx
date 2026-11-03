@@ -7,18 +7,21 @@ import {
   getMyEntities,
   updateEntityStatus,
 } from "../../api/entities";
-import type { Entity } from "../../api/entities";
+import type { AssignableUser, Entity } from "../../api/entities";
 import { useAuth } from "../../auth/useAuth";
+import {
+  EmptyState,
+  ErrorState,
+  FeedbackBanner,
+  LoadingState,
+  PageHeader,
+  Pagination,
+  SectionCard,
+} from "../../components/common";
+import { EntityTable, EntityToolbar } from "../../components/entities";
 import styles from "./EntitiesList.module.css";
 
 const LIMIT = 10;
-const MAX_VISIBLE_PAGES = 5;
-
-interface AssignableUser {
-  id: string;
-  email: string;
-  employee_id: string;
-}
 
 const EntitiesList = () => {
   const { user, hasPermission } = useAuth();
@@ -32,25 +35,12 @@ const EntitiesList = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    tone: "success" | "danger" | "info";
+    message: string;
+  } | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
-
-  const getPageNumbers = (): number[] => {
-    const pages: number[] = [];
-    let start = Math.max(1, page - Math.floor(MAX_VISIBLE_PAGES / 2));
-    let end = start + MAX_VISIBLE_PAGES - 1;
-
-    if (end > totalPages) {
-      end = totalPages;
-      start = Math.max(1, end - MAX_VISIBLE_PAGES + 1);
-    }
-
-    for (let currentPage = start; currentPage <= end; currentPage += 1) {
-      pages.push(currentPage);
-    }
-
-    return pages;
-  };
 
   useEffect(() => {
     if (!user) {
@@ -85,8 +75,7 @@ const EntitiesList = () => {
           const assignableUsers = await getAssignableUsers();
           setUsers(assignableUsers);
         }
-      } catch (fetchError) {
-        console.error("Failed to load entities", fetchError);
+      } catch {
         setError("Failed to load entities");
       } finally {
         setLoading(false);
@@ -110,6 +99,11 @@ const EntitiesList = () => {
             : currentEntity
         )
       );
+    } catch {
+      setFeedback({
+        tone: "danger",
+        message: "Failed to update entity status.",
+      });
     } finally {
       setUpdatingId(null);
     }
@@ -146,9 +140,15 @@ const EntitiesList = () => {
         setUsers(assignableUsers);
       }
 
-      alert("User assigned successfully");
+      setFeedback({
+        tone: "success",
+        message: "User assigned successfully.",
+      });
     } catch {
-      alert("Failed to assign user");
+      setFeedback({
+        tone: "danger",
+        message: "Failed to assign user.",
+      });
     } finally {
       setLoading(false);
     }
@@ -158,144 +158,64 @@ const EntitiesList = () => {
     return null;
   }
 
-  if (loading) return <p className={styles.info}>Loading entities...</p>;
-  if (error) return <p className={styles.error}>{error}</p>;
-
   const canManage = user.role === "admin" || user.role === "manager";
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Entities</h1>
+    <div className={styles.page}>
+      <PageHeader
+        title="Entities"
+        description="Manage access-governed entities and user assignments."
+      />
 
-      <div className={styles.searchContainer}>
-        <input
-          type="text"
-          placeholder="Search by entity name..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className={styles.searchInput}
+      {feedback && (
+        <FeedbackBanner
+          message={feedback.message}
+          onDismiss={() => setFeedback(null)}
+          tone={feedback.tone}
         />
+      )}
 
-        <button
-          className={styles.searchBtn}
-          onClick={() => {
+      <SectionCard>
+        <EntityToolbar
+          canManage={canManage}
+          search={search}
+          onCreate={() => navigate("/entities/new")}
+          onSearchChange={setSearch}
+          onSearchSubmit={() => {
             setPage(1);
             setAppliedSearch(search);
           }}
-        >
-          Search
-        </button>
-      </div>
+        />
+      </SectionCard>
 
-      <div className={styles.table}>
-        <div className={styles.header}>
-          <span>Name</span>
-          <span>Status</span>
-          <span>Assigned User</span>
-          <span>Actions</span>
-        </div>
-
-        {entities.map((entity) => {
-          const canRead = canManage || hasPermission(entity.id, "READ");
-          const canWrite = canManage || hasPermission(entity.id, "WRITE");
-
-          if (!canRead) {
-            return null;
-          }
-
-          return (
-            <div key={entity.id} className={styles.row}>
-              <span>{entity.name}</span>
-
-              <span
-                className={`${styles.status} ${
-                  entity.status === "ACTIVE" ? styles.active : styles.inactive
-                }`}
-              >
-                {entity.status}
-              </span>
-
-              <span>
-                {canManage && canWrite ? (
-                  <select
-                    className={styles.assignDropdown}
-                    defaultValue=""
-                    onChange={(event) =>
-                      handleAssignUser(entity.id, event.target.value)
-                    }
-                  >
-                    <option value="" disabled>
-                      Assign user
-                    </option>
-                    {users.map((assignableUser) => (
-                      <option key={assignableUser.id} value={assignableUser.id}>
-                        {assignableUser.email}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  "-"
-                )}
-              </span>
-
-              <span className={styles.actionsCell}>
-                {canWrite && (
-                  <>
-                    <button
-                      className={styles.editBtn}
-                      onClick={() => navigate(`/entities/${entity.id}/edit`)}
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      className={styles.statusToggleBtn}
-                      disabled={updatingId === entity.id}
-                      onClick={() => handleStatusToggle(entity)}
-                    >
-                      {updatingId === entity.id
-                        ? "Updating..."
-                        : entity.status === "ACTIVE"
-                          ? "Deactivate"
-                          : "Activate"}
-                    </button>
-                  </>
-                )}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className={styles.pagination}>
-        <button
-          className={styles.navBtn}
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-        >
-          Previous
-        </button>
-
-        {getPageNumbers().map((currentPage) => (
-          <button
-            key={currentPage}
-            className={`${styles.pageBtn} ${
-              currentPage === page ? styles.activePage : ""
-            }`}
-            onClick={() => setPage(currentPage)}
-          >
-            {currentPage}
-          </button>
-        ))}
-
-        <button
-          className={styles.navBtn}
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-        >
-          Next
-        </button>
-      </div>
+      <SectionCard>
+        {loading && <LoadingState message="Loading entities..." />}
+        {!loading && error && (
+          <ErrorState title="Entities unavailable" message={error} />
+        )}
+        {!loading && !error && total === 0 && (
+          <EmptyState message="No entities found." />
+        )}
+        {!loading && !error && total > 0 && (
+          <>
+            <EntityTable
+              canManage={canManage}
+              entities={entities}
+              hasPermission={hasPermission}
+              users={users}
+              updatingId={updatingId}
+              onAssignUser={handleAssignUser}
+              onEdit={(entityId) => navigate(`/entities/${entityId}/edit`)}
+              onStatusToggle={handleStatusToggle}
+            />
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </>
+        )}
+      </SectionCard>
     </div>
   );
 };

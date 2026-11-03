@@ -5,6 +5,14 @@ import {
   Legend,
   Tooltip,
 } from "chart.js";
+import {
+  Activity,
+  BadgeCheck,
+  Boxes,
+  Clock3,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { Doughnut } from "react-chartjs-2";
 import { getMetrics } from "../api/metrics";
 import type { MetricsResponse } from "../api/metrics";
@@ -79,6 +87,66 @@ const Dashboard = () => {
         }
       : null;
 
+  const overviewItems =
+    dashboardData.role === "admin"
+      ? [
+          {
+            label: "Total Users",
+            value: dashboardData.metrics.totalUsers,
+            hint: "Active employee identities tracked in the platform",
+            icon: <Users size={18} aria-hidden="true" />,
+          },
+          {
+            label: "Managed Entities",
+            value: dashboardData.metrics.totalEntities,
+            hint: "Current access-governed records in scope",
+            icon: <Boxes size={18} aria-hidden="true" />,
+          },
+          {
+            label: "System Roles",
+            value: dashboardData.metrics.systemRoles,
+            hint: "Configured RBAC roles available to users",
+            icon: <ShieldCheck size={18} aria-hidden="true" />,
+          },
+        ]
+      : dashboardData.role === "manager"
+        ? [
+            {
+              label: "Assigned Entities",
+              value: dashboardData.metrics.assignedEntities,
+              hint: "Entities assigned across your managed workspace",
+              icon: <Boxes size={18} aria-hidden="true" />,
+            },
+            {
+              label: "Active Entities",
+              value: dashboardData.metrics.activeEntities,
+              hint: "Currently active entities in your scope",
+              icon: <BadgeCheck size={18} aria-hidden="true" />,
+            },
+          ]
+        : [
+            {
+              label: "My Entities",
+              value: dashboardData.metrics.myEntities,
+              hint: "Entities currently visible to your account",
+              icon: <Boxes size={18} aria-hidden="true" />,
+            },
+            {
+              label: "Active Entities",
+              value: dashboardData.metrics.activeEntities,
+              hint: "Active entities available in your workspace",
+              icon: <BadgeCheck size={18} aria-hidden="true" />,
+            },
+          ];
+
+  const totalEntityStatusCount =
+    dashboardData.role === "admin"
+      ? dashboardData.charts.entitiesByStatus.reduce(
+          (totalCount, item) => totalCount + item.count,
+          0
+        )
+      : 0;
+
   return (
     <div className={styles.dashboard}>
       <PageHeader
@@ -98,83 +166,97 @@ const Dashboard = () => {
         }
       />
 
-      <SectionCard title="Overview">
-        <div className={styles.metrics}>
-          {role === "admin" && dashboardData.role === "admin" && (
-            <>
-              <StatCard
-                label="Total Users"
-                value={dashboardData.metrics.totalUsers}
-              />
-              <StatCard
-                label="Total Entities"
-                value={dashboardData.metrics.totalEntities}
-              />
-              <StatCard
-                label="System Roles"
-                value={dashboardData.metrics.systemRoles}
-              />
-            </>
-          )}
+      <section className={styles.metrics} aria-label="Dashboard overview">
+        {overviewItems.map((item) => (
+          <StatCard
+            key={item.label}
+            label={item.label}
+            value={item.value}
+            hint={item.hint}
+            icon={item.icon}
+          />
+        ))}
+      </section>
 
-          {role === "manager" && dashboardData.role === "manager" && (
-            <>
-              <StatCard
-                label="Assigned Entities"
-                value={dashboardData.metrics.assignedEntities}
-              />
-              <StatCard
-                label="Active Entities"
-                value={dashboardData.metrics.activeEntities}
-              />
-            </>
-          )}
-
-          {role === "user" && dashboardData.role === "user" && (
-            <>
-              <StatCard
-                label="My Entities"
-                value={dashboardData.metrics.myEntities}
-              />
-              <StatCard
-                label="Active Entities"
-                value={dashboardData.metrics.activeEntities}
-              />
-            </>
-          )}
-        </div>
-      </SectionCard>
-
-      {role === "admin" && dashboardData.role === "admin" && (
-        <SectionCard title="Analytics">
-          {entityStatusChart ? (
-            <div className={styles.chartsGrid}>
-              <div className={styles.chartCard}>
-                <h3 className={styles.chartTitle}>Entities by Status</h3>
-                <Doughnut
-                  data={entityStatusChart}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                      legend: {
-                        position: "bottom",
-                        labels: {
-                          boxWidth: 12,
-                          padding: 16,
-                          font: { size: 12 },
+      <div className={styles.contentGrid}>
+        {role === "admin" && dashboardData.role === "admin" && (
+          <SectionCard title="Access Status">
+            {entityStatusChart ? (
+              <div className={styles.chartLayout}>
+                <div className={styles.chartCanvas}>
+                  <Doughnut
+                    data={entityStatusChart}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      cutout: "68%",
+                      plugins: {
+                        legend: {
+                          position: "bottom",
+                          labels: {
+                            boxWidth: 12,
+                            padding: 16,
+                            font: { size: 12 },
+                          },
                         },
                       },
-                    },
-                  }}
-                />
+                    }}
+                  />
+                </div>
+                <div className={styles.chartSummary}>
+                  <span className={styles.summaryLabel}>
+                    Total status records
+                  </span>
+                  <strong>{totalEntityStatusCount}</strong>
+                  <p>
+                    Status distribution uses the existing entity metrics feed.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <EmptyState message="No entity data available to display analytics." />
+            )}
+          </SectionCard>
+        )}
+
+        <SectionCard title="Workspace Health">
+          <div className={styles.healthList}>
+            <div className={styles.healthItem}>
+              <span className={styles.healthIcon}>
+                <Activity size={18} aria-hidden="true" />
+              </span>
+              <div>
+                <strong>RBAC controls active</strong>
+                <p>Routes and page actions remain governed by current roles.</p>
               </div>
             </div>
-          ) : (
-            <EmptyState message="No entity data available to display analytics." />
-          )}
+            <div className={styles.healthItem}>
+              <span className={styles.healthIcon}>
+                <Clock3 size={18} aria-hidden="true" />
+              </span>
+              <div>
+                <strong>Recent activity</strong>
+                <p>Activity timeline placeholder reserved for audit data.</p>
+              </div>
+            </div>
+          </div>
         </SectionCard>
-      )}
+      </div>
+
+      <SectionCard title="Recent Activity">
+        <div className={styles.activityTimeline} aria-label="Recent activity">
+          <div className={styles.activityItem}>
+            <span className={styles.activityDot} aria-hidden="true" />
+            <div>
+              <strong>Audit timeline pending</strong>
+              <p>
+                This section is intentionally a placeholder until audit data is
+                introduced by a later milestone.
+              </p>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
     </div>
   );
 };

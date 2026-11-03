@@ -1,18 +1,30 @@
 import { useEffect, useState } from "react";
 import { getAllPermissions, upsertPermission } from "../api/permissions";
-import type { PermissionRow, PermissionType } from "../api/permissions";
+import type { PermissionType } from "../api/permissions";
 import { useAuth } from "../auth/useAuth";
+import {
+  ErrorState,
+  FeedbackBanner,
+  LoadingState,
+  PageHeader,
+  SectionCard,
+} from "../components/common";
+import {
+  PermissionTable,
+  PermissionToolbar,
+} from "../components/permissions";
+import type { PermissionTableRow } from "../components/permissions";
 import styles from "./UserPermissionsPage.module.css";
-
-interface Row extends PermissionRow {
-  rowKey: string;
-}
 
 const UserPermissionsPage = () => {
   const { refreshPermissions } = useAuth();
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<PermissionTableRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    tone: "success" | "danger" | "info";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchPermissions = async () => {
@@ -21,14 +33,13 @@ const UserPermissionsPage = () => {
         setError(null);
 
         const data = await getAllPermissions();
-        const mappedRows: Row[] = data.map((row) => ({
+        const mappedRows: PermissionTableRow[] = data.map((row) => ({
           ...row,
           rowKey: `${row.userId}_${row.entityId}`,
         }));
 
         setRows(mappedRows);
-      } catch (fetchError) {
-        console.error("Failed to fetch permissions", fetchError);
+      } catch {
         setError("Failed to load permissions");
         setRows([]);
       } finally {
@@ -39,7 +50,10 @@ const UserPermissionsPage = () => {
     fetchPermissions();
   }, []);
 
-  const setPermission = async (row: Row, permission: PermissionType) => {
+  const setPermission = async (
+    row: PermissionTableRow,
+    permission: PermissionType
+  ) => {
     setRows((previousRows) =>
       previousRows.map((currentRow) =>
         currentRow.rowKey === row.rowKey
@@ -60,88 +74,42 @@ const UserPermissionsPage = () => {
       });
 
       await refreshPermissions();
-    } catch (saveError) {
-      console.error("Failed to save permission", saveError);
-      alert("Failed to save permission");
+      setFeedback({
+        tone: "success",
+        message: "Permission updated successfully.",
+      });
+    } catch {
+      setFeedback({
+        tone: "danger",
+        message: "Failed to save permission.",
+      });
     }
   };
 
-  if (loading) return <p>Loading permissions...</p>;
-  if (error) return <p>{error}</p>;
-
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>User Permissions</h1>
+    <div className={styles.page}>
+      <PageHeader
+        title="User Permissions"
+        description="Review and update entity permissions for assigned users."
+      />
 
-      {rows.length === 0 ? (
-        <p>No assigned entities yet.</p>
-      ) : (
-        <div className={styles.table}>
-          <div className={styles.header}>
-            <span>User</span>
-            <span>Entity</span>
-            <span>Permissions</span>
-          </div>
-
-          {rows.map((row) => (
-            <div key={row.rowKey} className={styles.row}>
-              <span>{row.userEmail}</span>
-              <span>{row.entityName}</span>
-
-              <div className={styles.permissions}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={row.permission === "READ"}
-                    disabled={row.permission === "READ_WRITE"}
-                    onChange={() =>
-                      setPermission(
-                        row,
-                        row.permission === "READ" ? "NONE" : "READ"
-                      )
-                    }
-                  />
-                  Read
-                </label>
-
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={row.permission === "WRITE"}
-                    disabled={row.permission === "READ_WRITE"}
-                    onChange={() =>
-                      setPermission(
-                        row,
-                        row.permission === "WRITE" ? "NONE" : "WRITE"
-                      )
-                    }
-                  />
-                  Write
-                </label>
-
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={row.permission === "READ_WRITE"}
-                    disabled={
-                      row.permission === "READ" || row.permission === "WRITE"
-                    }
-                    onChange={() =>
-                      setPermission(
-                        row,
-                        row.permission === "READ_WRITE"
-                          ? "NONE"
-                          : "READ_WRITE"
-                      )
-                    }
-                  />
-                  Read / Write
-                </label>
-              </div>
-            </div>
-          ))}
-        </div>
+      {feedback && (
+        <FeedbackBanner
+          message={feedback.message}
+          onDismiss={() => setFeedback(null)}
+          tone={feedback.tone}
+        />
       )}
+
+      <SectionCard actions={<PermissionToolbar rowCount={rows.length} />}>
+        {loading && <LoadingState message="Loading permissions..." />}
+        {!loading && error && (
+          <ErrorState title="Permissions unavailable" message={error} />
+        )}
+        {!loading && !error && (
+          <PermissionTable rows={rows} onPermissionChange={setPermission} />
+        )}
+      </SectionCard>
     </div>
   );
 };
