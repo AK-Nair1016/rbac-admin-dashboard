@@ -1,0 +1,50 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.success {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.danger {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.info {
+  color: #1e40af;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.dismiss {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.dismiss:hover,
+.dismiss:focus-visible {
+  background: rgba(15, 23, 42, 0.08);
+  outline: none;
+}

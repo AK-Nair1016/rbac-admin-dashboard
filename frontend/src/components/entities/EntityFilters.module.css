@@ -1,0 +1,16 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .filters {
+    justify-content: stretch;
+  }
+
+  .filters > * {
+    width: 100%;
+  }
+}

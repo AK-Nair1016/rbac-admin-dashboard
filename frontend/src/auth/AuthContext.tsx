@@ -1,41 +1,9 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { getMyPermissions } from "../api/permissions";
 import type { EntityPermission } from "../api/permissions";
-/* ===== Types ===== */
-
-export type UserRole = "admin" | "manager" | "user";
-export type PermissionAction = "READ" | "WRITE";
-
-export interface AuthUser {
-  userId: string;
-  employeeId: string;
-  role: UserRole;
-}
-
-export interface AuthContextType {
-  user: AuthUser | null;
-  token: string | null;
-  isLoading: boolean;
-  permissions: EntityPermission[];
-  hasPermission: (
-    entityId: string,
-    action: PermissionAction
-  ) => boolean;
-  refreshPermissions: () => Promise<void>;
-  login: (token: string) => void;
-  logout: () => void;
-}
-
-/* ===== Context ===== */
-
-export const AuthContext = createContext<AuthContextType | null>(null);
-
-/* ===== Helper ===== */
+import { AuthContext } from "./context";
+import type { AuthUser, PermissionAction } from "./types";
 
 const decodeToken = (token: string): AuthUser => {
   const payload = JSON.parse(atob(token.split(".")[1]));
@@ -47,64 +15,74 @@ const decodeToken = (token: string): AuthUser => {
   };
 };
 
-/* ===== Provider ===== */
+const getStoredToken = () => localStorage.getItem("token");
 
-export const AuthProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [token, setToken] = useState<string | null>(() => getStoredToken());
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const storedToken = getStoredToken();
+    return storedToken ? decodeToken(storedToken) : null;
+  });
   const [permissions, setPermissions] = useState<EntityPermission[]>([]);
+  const isLoading = false;
 
-  /* ---- Load token on boot ---- */
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-
-    if (storedToken) {
-      const decodedUser = decodeToken(storedToken);
-      setToken(storedToken);
-      setUser(decodedUser);
-    }
-
-    setIsLoading(false);
-  }, []);
-
-  /* ---- Load permissions when user changes ---- */
-  useEffect(() => {
-    if (!user) {
-      setPermissions([]);
-      return;
-    }
-
-    refreshPermissions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  /* ---- Permission fetch ---- */
   const refreshPermissions = async () => {
     try {
       const data = await getMyPermissions();
 
       if (!Array.isArray(data)) {
-        console.error(
-          "❌ Permissions API returned invalid payload:",
-          data
-        );
+        console.error("Permissions API returned an invalid payload", data);
         setPermissions([]);
         return;
       }
 
       setPermissions(data);
-    } catch (error) {
-      console.error("❌ Failed to fetch permissions:", error);
+    } catch (permissionError) {
+      console.error("Failed to fetch permissions", permissionError);
       setPermissions([]);
     }
   };
 
-  /* ---- Auth actions ---- */
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadPermissions = async () => {
+      try {
+        const data = await getMyPermissions();
+
+        if (!Array.isArray(data)) {
+          console.error("Permissions API returned an invalid payload", data);
+
+          if (!isCancelled) {
+            setPermissions([]);
+          }
+
+          return;
+        }
+
+        if (!isCancelled) {
+          setPermissions(data);
+        }
+      } catch (permissionError) {
+        console.error("Failed to fetch permissions", permissionError);
+
+        if (!isCancelled) {
+          setPermissions([]);
+        }
+      }
+    };
+
+    void loadPermissions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user]);
+
   const login = (jwtToken: string) => {
     const decodedUser = decodeToken(jwtToken);
     localStorage.setItem("token", jwtToken);
@@ -119,16 +97,11 @@ export const AuthProvider = ({
     setPermissions([]);
   };
 
-  /* ---- Permission check ---- */
   const hasPermission = (
     entityId: string,
     action: PermissionAction
   ): boolean => {
-    // Hard override for Admin / Manager
-    if (
-      user?.role === "admin" ||
-      user?.role === "manager"
-    ) {
+    if (user?.role === "admin" || user?.role === "manager") {
       return true;
     }
 
@@ -136,14 +109,17 @@ export const AuthProvider = ({
       return false;
     }
 
-    const perm = permissions.find(
-      (p) => p.entityId === entityId
-    );
+    const permission = permissions.find((item) => item.entityId === entityId);
 
-    if (!perm) return false;
-    if (perm.permission === "READ_WRITE") return true;
+    if (!permission) {
+      return false;
+    }
 
-    return perm.permission === action;
+    if (permission.permission === "READ_WRITE") {
+      return true;
+    }
+
+    return permission.permission === action;
   };
 
   return (
@@ -162,18 +138,4 @@ export const AuthProvider = ({
       {children}
     </AuthContext.Provider>
   );
-};
-
-/* ===== Hook ===== */
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error(
-      "useAuth must be used within an AuthProvider"
-    );
-  }
-
-  return context;
 };
